@@ -73,6 +73,7 @@
 - [x] External plugin manifest support with `plugin.json`
 - [x] 3D Tiles layer support through `maplibre-gl-3d-tiles`
 - [x] 3D Tiles restoration when reopening projects
+- [x] 3D Tiles pipeline plugin (import mesh/point cloud/oblique folders, local CRS or GCP register, LOD, export)
 - [x] GeoParquet panel DuckDB startup fix
 - [x] MSIX desktop packaging and cleaner build output
 - [x] External native GeoJSON layers registered from local directories

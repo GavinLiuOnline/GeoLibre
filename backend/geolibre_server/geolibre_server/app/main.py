@@ -31,6 +31,7 @@ from .ml import stop_child_server
 from .postgis import router as postgis_router
 from .raster import router as raster_router
 from .sql import router as sql_router
+from .tiles3d import router as tiles3d_router
 from .vector import router as vector_router
 from .whitebox import router as whitebox_router
 
@@ -110,6 +111,7 @@ app.add_middleware(
 )
 app.include_router(whitebox_router)
 app.include_router(conversion_router)
+app.include_router(tiles3d_router)
 app.include_router(raster_router)
 app.include_router(vector_router)
 app.include_router(postgis_router)

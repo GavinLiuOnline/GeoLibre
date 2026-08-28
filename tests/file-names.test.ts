@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   ensureHtmlFileName,
   ensureProjectFileName,
+  ensureZipFileName,
 } from "../apps/geolibre-desktop/src/lib/file-names";
 
 describe("ensureHtmlFileName", () => {
@@ -35,6 +36,21 @@ describe("ensureHtmlFileName", () => {
   it("appends .html when a non-HTML dot suffix is present", () => {
     assert.equal(ensureHtmlFileName("my.map", "fallback"), "my.map.html");
     assert.equal(ensureHtmlFileName("data.json", "fallback"), "data.json.html");
+  });
+});
+
+describe("ensureZipFileName", () => {
+  it("falls back to the slug-based name when blank", () => {
+    assert.equal(ensureZipFileName("", "my-map"), "my-map.zip");
+    assert.equal(ensureZipFileName(".", "my-map"), "my-map.zip");
+  });
+
+  it("appends .zip when no zip extension is present", () => {
+    assert.equal(ensureZipFileName("cockpit", "map"), "cockpit.zip");
+  });
+
+  it("keeps an existing .zip extension", () => {
+    assert.equal(ensureZipFileName("scene.ZIP", "map"), "scene.ZIP");
   });
 });
 

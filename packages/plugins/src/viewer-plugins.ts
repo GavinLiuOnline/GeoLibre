@@ -11,7 +11,7 @@
 // Read from `plugin-ids`, not from the plugin modules: `maplibre-geoagent.ts`
 // pulls in `maplibre-gl-earth-engine`, which touches `window` at module load,
 // so importing it here would make this list browser-only.
-import { ANNOTATIONS_PLUGIN_ID, GEOAGENT_PLUGIN_ID, GEO_EDITOR_PLUGIN_ID } from "./plugin-ids";
+import { ANNOTATIONS_PLUGIN_ID, GEOAGENT_PLUGIN_ID, GEO_EDITOR_PLUGIN_ID, TILES3D_PIPELINE_PLUGIN_ID } from "./plugin-ids";
 
 /**
  * Plugins that must never be active under the viewer preset, because their
@@ -26,6 +26,9 @@ import { ANNOTATIONS_PLUGIN_ID, GEOAGENT_PLUGIN_ID, GEO_EDITOR_PLUGIN_ID } from 
  *   companion module rather than the plugin's own `app` handle, which is
  *   exactly why "does this file call a store mutator?" is the wrong question
  *   to ask of a candidate — follow what its control can *do*.
+ * - {@link TILES3D_PIPELINE_PLUGIN_ID} — the 3D Tiles authoring workbench.
+ *   It has no on-map control, but `activate()` opens a right panel that
+ *   imports files and writes preview/tileset layers into the store.
  *
  * A blocklist rather than an allowlist on purpose: the viewer's job is to show
  * the project as saved, so the display plugins a project relies on (layer
@@ -48,4 +51,5 @@ export const VIEWER_BLOCKED_PLUGIN_IDS: readonly string[] = [
   GEO_EDITOR_PLUGIN_ID,
   ANNOTATIONS_PLUGIN_ID,
   GEOAGENT_PLUGIN_ID,
+  TILES3D_PIPELINE_PLUGIN_ID,
 ];

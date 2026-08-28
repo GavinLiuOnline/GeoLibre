@@ -87,6 +87,27 @@ The check runs in the browser, without your credentials attached, so it sees wha
 
 **Project → Export as HTML...** writes the whole project to a single standalone HTML file that runs offline with no server. Host it anywhere, or open it straight from disk.
 
+## Export Cesium cockpit
+
+**Project → Export Cesium cockpit...** writes a ZIP you can unzip and serve (or drop into an iframe):
+
+| File | Contents |
+| --- | --- |
+| `index.html` | Digital-twin HUD (project title, nav tabs, side panels). Frames the globe. |
+| `globe.html` | CesiumJS globe (no chrome). Clicked vector / 3D Tiles features `postMessage` to the HUD. |
+| `config.js` | Online layer URLs (XYZ / WMS / WMTS / remote 3D Tiles) plus camera and title |
+| `data/geojson/` | Cached GeoJSON for local / in-memory vector layers |
+| `data/tilesets/` | Cached 3D Tiles trees for local or in-memory tilesets (blob URLs, desktop file paths) |
+
+Serve the unzipped folder over HTTP (Chrome blocks `file://` tileset fetches). Open `index.html`. The HUD listens for `postMessage` from the globe iframe and opens a simulated target panel:
+
+```js
+// Messages from globe.html → index.html (and any further parent)
+// { source: "geolibre-cesium-cockpit", type: "ready" | "pick" | "click" | "camera", payload }
+```
+
+CesiumJS loads from a CDN. Online imagery still needs the network. Cesium Ion tokens are not copied out of Settings — add one to `config.js` (`ionToken`) if the host needs Ion terrain or imagery.
+
 ## Collaborate
 
 **Project → Collaborate...** starts or joins a live session in which several people edit the same project at once, with presence cursors, chat, and per-participant permissions. The feature is off unless the build configures a relay URL — see [Collaboration](../collaboration.md).

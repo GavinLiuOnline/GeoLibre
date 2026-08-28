@@ -1040,3 +1040,79 @@ export {
   type FlightModelConfig,
   type FlightStepResult,
 } from "./plugins/flight-simulator-physics";
+export {
+  maplibreTiles3dPipelinePlugin,
+  TILES3D_PIPELINE_PLUGIN_ID,
+  DEFAULT_TILES3D_PIPELINE_LABELS,
+  defaultProj4ParamLabel,
+  setTiles3dPipelineLabels,
+  setTiles3dPipelineZipSaver,
+  type Tiles3dPipelineLabels,
+} from "./plugins/tiles3d-pipeline";
+export {
+  importScene,
+  normalizeOptimizeOptions,
+  applyMeshOptimize,
+  shiftScene,
+  bboxCenter,
+} from "./plugins/tiles3d-pipeline/import-scene";
+export { importBundle } from "./plugins/tiles3d-pipeline/import-bundle";
+export {
+  parseObj,
+  parseGlb,
+  parseStl,
+  parsePly,
+  writeGlb,
+  wrapGlb,
+  weldVertices,
+  clusterMesh,
+  triangleCount,
+  vertexCount,
+} from "./plugins/tiles3d-pipeline/mesh";
+export { parseLas, writePnts, voxelDownsample } from "./plugins/tiles3d-pipeline/las";
+export {
+  ecefFromLngLatHeight,
+  lngLatHeightFromEcef,
+  eastNorthUpToEcef,
+  tilesetTransform,
+  geographicBounds,
+  umeyama,
+  fitPlacementFromGcps,
+  normalizePlacement,
+} from "./plugins/tiles3d-pipeline/transforms";
+export {
+  proj4FromLocalCrs,
+  projectedToLngLat,
+  lngLatToProjected,
+  placementFromLocalCrs,
+  normalizeLocalCrsSettings,
+  settingsFromEpsg,
+  parseCrsInput,
+  sanitizeProj4,
+  parseProj4Params,
+  serializeProj4Params,
+  updateProj4Param,
+  removeProj4Param,
+  proj4StringForParams,
+} from "./plugins/tiles3d-pipeline/crs";
+export { parseObliqueMetadata, applyObliqueMetadata } from "./plugins/tiles3d-pipeline/oblique";
+export { buildTileset, rewriteTilesetUris, tilesetGeographicBounds } from "./plugins/tiles3d-pipeline/tileset";
+export { buildZip } from "./plugins/tiles3d-pipeline/zip";
+export { crc32 } from "./plugins/tiles3d-pipeline/crc32";
+export { buildQaReport } from "./plugins/tiles3d-pipeline/qa";
+export {
+  DEFAULT_PLACEMENT,
+  DEFAULT_OPTIMIZE_OPTIONS,
+  DEFAULT_LOCAL_CRS,
+  PIPELINE_STEPS,
+} from "./plugins/tiles3d-pipeline/types";
+export type {
+  Placement,
+  OptimizeOptions,
+  ImportedScene,
+  ModelGcp,
+  QaReport,
+  TilesetExport,
+  LocalCrsSettings,
+  RegisterMode,
+} from "./plugins/tiles3d-pipeline/types";

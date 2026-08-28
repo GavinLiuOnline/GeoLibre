@@ -6,6 +6,7 @@ import {
   ANNOTATIONS_PLUGIN_ID,
   GEOAGENT_PLUGIN_ID,
   GEO_EDITOR_PLUGIN_ID,
+  TILES3D_PIPELINE_PLUGIN_ID,
 } from "../packages/plugins/src/plugin-ids";
 import { VIEWER_BLOCKED_PLUGIN_IDS } from "../packages/plugins/src/viewer-plugins";
 
@@ -13,7 +14,7 @@ describe("VIEWER_BLOCKED_PLUGIN_IDS", () => {
   it("names every plugin whose on-map control writes to the project", () => {
     assert.deepEqual(
       [...VIEWER_BLOCKED_PLUGIN_IDS].sort(),
-      [ANNOTATIONS_PLUGIN_ID, GEOAGENT_PLUGIN_ID, GEO_EDITOR_PLUGIN_ID].sort(),
+      [ANNOTATIONS_PLUGIN_ID, GEOAGENT_PLUGIN_ID, GEO_EDITOR_PLUGIN_ID, TILES3D_PIPELINE_PLUGIN_ID].sort(),
     );
   });
 

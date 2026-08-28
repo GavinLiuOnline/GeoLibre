@@ -34,3 +34,13 @@ export function ensureHtmlFileName(name: string, fallbackSlug: string): string {
   if (!trimmed || /^\.+$/.test(trimmed)) return `${fallbackSlug}.html`;
   return /\.html?$/i.test(trimmed) ? trimmed : `${trimmed}.html`;
 }
+
+/**
+ * Ensure an exported ZIP file name carries a `.zip` extension, defaulting to a
+ * slug-based name when blank so the browser download is a recognizable archive.
+ */
+export function ensureZipFileName(name: string, fallbackSlug: string): string {
+  const trimmed = name.trim();
+  if (!trimmed || /^\.+$/.test(trimmed)) return `${fallbackSlug}.zip`;
+  return /\.zip$/i.test(trimmed) ? trimmed : `${trimmed}.zip`;
+}

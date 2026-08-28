@@ -369,6 +369,7 @@ change. If you also touched pages under `docs/`, build the site — CI runs
 | `maplibre-gl-components`      | Adds the MapLibre Components control grid and panels for FlatGeobuf, COG, PMTiles, Zarr, LiDAR, and Gaussian splats |
 | `maplibre-gl-geo-editor`      | Adds GeoEditor drawing controls                                                                                     |
 | `maplibre-gl-geoagent`        | Adds GeoAgent map assistant controls                                                                                |
+| `geolibre-3d-pipeline`        | Import mesh/point cloud/oblique folders, CRS- or GCP-register, optimize/LOD, and export OGC 3D Tiles                 |
 | `maplibre-gl-lidar`           | Adds LiDAR controls                                                                                                 |
 | `maplibre-gl-streetview`      | Adds street view controls                                                                                           |
 | `maplibre-gl-swipe`           | Adds map swipe controls                                                                                             |

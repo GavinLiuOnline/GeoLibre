@@ -22,6 +22,7 @@ import {
   FileText,
   Folder,
   FolderOpen,
+  Globe,
   HardDriveDownload,
   History,
   Import,
@@ -67,6 +68,7 @@ interface ProjectMenuProps {
   onSaveAsTemplate?: () => void;
   onShare: () => void;
   onExportHtml: () => void;
+  onExportCesiumCockpit: () => void;
   onCollaborate: () => void;
   onPrintLayout: () => void;
   onOpenOfflineBasemap: () => void;
@@ -91,6 +93,7 @@ export function ProjectMenu({
   onSaveAsTemplate,
   onShare,
   onExportHtml,
+  onExportCesiumCockpit,
   onCollaborate,
   onPrintLayout,
   onOpenOfflineBasemap,
@@ -127,6 +130,7 @@ export function ProjectMenu({
     show("project.saveAsTemplate") ||
     (!shareHidden && show("project.share")) ||
     show("project.exportHtml") ||
+    show("project.exportCesiumCockpit") ||
     (collaborationEnabled && show("project.collaborate"));
   const showPrintGroup = show("project.printLayout") || show("project.offlineRegion");
 
@@ -311,6 +315,12 @@ export function ProjectMenu({
           <DropdownMenuItem onSelect={onExportHtml}>
             <FileCode2 className="me-2 h-3.5 w-3.5" />
             {t("toolbar.item.exportHtmlEllipsis")}
+          </DropdownMenuItem>
+        )}
+        {show("project.exportCesiumCockpit") && (
+          <DropdownMenuItem onSelect={onExportCesiumCockpit}>
+            <Globe className="me-2 h-3.5 w-3.5" />
+            {t("toolbar.item.exportCesiumCockpitEllipsis")}
           </DropdownMenuItem>
         )}
         {collaborationEnabled && show("project.collaborate") && (

@@ -314,6 +314,12 @@ export const MENU_ITEM_CATALOG: readonly MenuItemCatalogEntry[] = [
     tier: "intermediate",
   },
   {
+    id: "project.exportCesiumCockpit",
+    menuId: "project",
+    labelKey: "toolbar.item.exportCesiumCockpitEllipsis",
+    tier: "intermediate",
+  },
+  {
     id: "project.collaborate",
     menuId: "project",
     labelKey: "toolbar.item.collaborateEllipsis",

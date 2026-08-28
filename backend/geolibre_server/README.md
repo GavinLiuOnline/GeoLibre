@@ -144,6 +144,8 @@ it unset, and PostGIS stays off until an operator lists the databases.
 | POST | `/conversion/vector-to-pmtiles` | Vector → PMTiles (freestiler) |
 | POST | `/conversion/raster-to-cog` | Raster → Cloud Optimized GeoTIFF |
 | GET | `/conversion/jobs/{id}` | Conversion job status |
+| GET | `/tiles3d/status` | 3D Tiles conversion availability |
+| POST | `/tiles3d/las-to-3dtiles` | Uncompressed LAS → 3D Tiles zip (PNTS) |
 | GET | `/sql/status` | Spatial SQL (SedonaDB) availability |
 | POST | `/sql/run` | Run Sedona spatial SQL over registered layers |
 | GET | `/ml/status` | Segmentation backend availability + models |

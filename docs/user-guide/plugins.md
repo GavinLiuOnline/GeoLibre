@@ -29,9 +29,10 @@ The built-in plugins are:
 | **Layer Swipe** | A swipe bar comparing two layers. |
 | **DGGS** | A submenu of discrete global grid overlays — H3, S2, A5, DGGRID, DGGAL, OLC, Geohash, and Tilecode — each rendering its grid over the current view, identifying a cell, and exporting the grid or selection. |
 | **Flight Simulator** | Fly over terrain and 3D layers with keyboard controls. |
+| **3D Tiles Pipeline** | Import a mesh, point cloud, or oblique folder (added as a layer immediately), register with a local CRS or GCPs, build LOD, and export OGC 3D Tiles. See [3D Tiles Pipeline](3d-pipeline.md). |
 | **SamGeo** | Segment imagery into vector features. See [AI Segmentation](segmentation.md). |
 
-Most entries open a submenu that **activates** the plugin and **positions** its on-map control in any corner: top left, top right, bottom left, or bottom right. A few behave differently: **Flight Simulator** and **SamGeo** toggle directly with no submenu, and **Web Services** and **DGGS** open a list of their sub-plugins instead.
+Most entries open a submenu that **activates** the plugin and **positions** its on-map control in any corner: top left, top right, bottom left, or bottom right. A few behave differently: **Flight Simulator**, **3D Tiles Pipeline**, and **SamGeo** toggle directly with no submenu, and **Web Services** and **DGGS** open a list of their sub-plugins instead.
 
 ![A plugin submenu, with Activate above the four map-corner positions](https://assets.geolibre.app/images/geolibre-plugin-position-menu.webp)
 

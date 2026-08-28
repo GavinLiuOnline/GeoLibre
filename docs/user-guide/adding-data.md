@@ -114,6 +114,7 @@ were rendered before the choice existed and cannot honor it.
 | **Gaussian Splatting** | Gaussian splat scenes. |
 | **3D Tiles Layer** | OGC 3D Tiles, restored when reopening a project. Includes a Google Photorealistic 3D Tiles sample that reads `VITE_GOOGLE_MAPS_API_KEY` or `GOOGLE_MAPS_API_KEY` from the runtime environment. |
 | **3D Model (glTF)** | Places a glTF/GLB model at a coordinate, with scale, rotation, and altitude controls. |
+| **3D Tiles Pipeline** | Authoring workbench (Plugins menu): import a mesh, point cloud, or oblique folder (added as a layer), register with a local CRS or GCPs, optimize/LOD, and export a 3D Tiles zip. See [3D Tiles Pipeline](3d-pipeline.md). |
 
 ## Databases
 

@@ -48,6 +48,8 @@ import {
   setStacLabels,
   STAC_PLUGIN_ID,
   setTimelapseLabels,
+  defaultProj4ParamLabel,
+  setTiles3dPipelineLabels,
   DECK_VIZ_PLUGIN_ID,
   DIRECTIONS_PLUGIN_ID,
   GRATICULE_PLUGIN_ID,
@@ -1030,7 +1032,97 @@ export function TopToolbar({
       badResponse: t("samgeoPlugin.badResponse"),
       unknownProjection: t("samgeoPlugin.unknownProjection"),
     });
-  }, [t]);
+    setTiles3dPipelineLabels({
+      title: t("tiles3dPipeline.title"),
+      getTitle: () => i18n.t("tiles3dPipeline.title"),
+      menu: t("tiles3dPipeline.menu"),
+      open: t("tiles3dPipeline.open"),
+      intro: t("tiles3dPipeline.intro"),
+      stepImport: t("tiles3dPipeline.stepImport"),
+      stepRegister: t("tiles3dPipeline.stepRegister"),
+      stepOptimize: t("tiles3dPipeline.stepOptimize"),
+      stepExport: t("tiles3dPipeline.stepExport"),
+      chooseFile: t("tiles3dPipeline.chooseFile"),
+      chooseFolder: t("tiles3dPipeline.chooseFolder"),
+      formatsHint: t("tiles3dPipeline.formatsHint"),
+      file: t("tiles3dPipeline.file"),
+      kind: t("tiles3dPipeline.kind"),
+      kindMesh: t("tiles3dPipeline.kindMesh"),
+      kindPoints: t("tiles3dPipeline.kindPoints"),
+      kindTileset: t("tiles3dPipeline.kindTileset"),
+      vertices: t("tiles3dPipeline.vertices"),
+      triangles: t("tiles3dPipeline.triangles"),
+      registerHint: t("tiles3dPipeline.registerHint"),
+      registerModeCrs: t("tiles3dPipeline.registerModeCrs"),
+      registerModeGcp: t("tiles3dPipeline.registerModeGcp"),
+      crsPreset: t("tiles3dPipeline.crsPreset"),
+      crsEnu: t("tiles3dPipeline.crsEnu"),
+      crsWgs84Utm: t("tiles3dPipeline.crsWgs84Utm"),
+      crsWebMercator: t("tiles3dPipeline.crsWebMercator"),
+      crsAlbersChina: t("tiles3dPipeline.crsAlbersChina"),
+      crsCgcs2000Gk3: t("tiles3dPipeline.crsCgcs2000Gk3"),
+      crsCgcs2000Gk6: t("tiles3dPipeline.crsCgcs2000Gk6"),
+      crsBj54Gk3: t("tiles3dPipeline.crsBj54Gk3"),
+      crsBj54Gk6: t("tiles3dPipeline.crsBj54Gk6"),
+      crsCustom: t("tiles3dPipeline.crsCustom"),
+      crsZone: t("tiles3dPipeline.crsZone"),
+      crsZoneInEasting: t("tiles3dPipeline.crsZoneInEasting"),
+      crsOffsetX: t("tiles3dPipeline.crsOffsetX"),
+      crsOffsetY: t("tiles3dPipeline.crsOffsetY"),
+      crsOffsetZ: t("tiles3dPipeline.crsOffsetZ"),
+      crsCustomProj4: t("tiles3dPipeline.crsCustomProj4"),
+      crsPasteHint: t("tiles3dPipeline.crsPasteHint"),
+      crsParamsTitle: t("tiles3dPipeline.crsParamsTitle"),
+      crsParamLabel: (key) => {
+        const names = t("tiles3dPipeline.crsParam", { returnObjects: true });
+        if (names && typeof names === "object" && !Array.isArray(names) && key in names) {
+          const label = (names as Record<string, string>)[key];
+          if (typeof label === "string" && label) return label;
+        }
+        return defaultProj4ParamLabel(key);
+      },
+      crsModelProjected: t("tiles3dPipeline.crsModelProjected"),
+      crsApply: t("tiles3dPipeline.crsApply"),
+      crsApplied: t("tiles3dPipeline.crsApplied"),
+      crsNeedOrigin: t("tiles3dPipeline.crsNeedOrigin"),
+      crsFailed: t("tiles3dPipeline.crsFailed"),
+      addGcp: t("tiles3dPipeline.addGcp"),
+      removeGcp: t("tiles3dPipeline.removeGcp"),
+      fitGcps: t("tiles3dPipeline.fitGcps"),
+      modelX: t("tiles3dPipeline.modelX"),
+      modelY: t("tiles3dPipeline.modelY"),
+      modelZ: t("tiles3dPipeline.modelZ"),
+      longitude: t("tiles3dPipeline.longitude"),
+      latitude: t("tiles3dPipeline.latitude"),
+      height: t("tiles3dPipeline.height"),
+      heading: t("tiles3dPipeline.heading"),
+      pitch: t("tiles3dPipeline.pitch"),
+      roll: t("tiles3dPipeline.roll"),
+      scale: t("tiles3dPipeline.scale"),
+      pickOrigin: t("tiles3dPipeline.pickOrigin"),
+      pickingOrigin: t("tiles3dPipeline.pickingOrigin"),
+      optimizeHint: t("tiles3dPipeline.optimizeHint"),
+      weldEpsilon: t("tiles3dPipeline.weldEpsilon"),
+      reduction: t("tiles3dPipeline.reduction"),
+      lodLevels: t("tiles3dPipeline.lodLevels"),
+      quantize: t("tiles3dPipeline.quantize"),
+      qaTitle: t("tiles3dPipeline.qaTitle"),
+      bounds: t("tiles3dPipeline.bounds"),
+      residualRms: t("tiles3dPipeline.residualRms"),
+      gcpCount: t("tiles3dPipeline.gcpCount"),
+      lodLevel: t("tiles3dPipeline.lodLevel"),
+      exportHint: t("tiles3dPipeline.exportHint"),
+      exportZip: t("tiles3dPipeline.exportZip"),
+      addTileset: t("tiles3dPipeline.addTileset"),
+      importFirst: t("tiles3dPipeline.importFirst"),
+      gcpFitFailed: t("tiles3dPipeline.gcpFitFailed"),
+      gcpFitted: t("tiles3dPipeline.gcpFitted"),
+      layerAdded: t("tiles3dPipeline.layerAdded"),
+      exported: t("tiles3dPipeline.exported"),
+      tilesetAdded: t("tiles3dPipeline.tilesetAdded"),
+      pickCancelled: t("tiles3dPipeline.pickCancelled"),
+    });
+  }, [t, i18n]);
 
   const setProcessingOpen = useAppStore((s) => s.setProcessingOpen);
   const setConversionOpen = useAppStore((s) => s.setConversionOpen);
@@ -1373,6 +1465,14 @@ export function TopToolbar({
       group: t("toolbar.commandGroup.project"),
       icon: Printer,
       run: () => setPrintLayoutOpen(true),
+    },
+    {
+      id: "project.export-cesium-cockpit",
+      title: t("toolbar.command.projectExportCesiumCockpit"),
+      group: t("toolbar.commandGroup.project"),
+      keywords: "cesium 3d tiles cockpit export",
+      icon: Globe,
+      run: () => void projectFiles.handleExportCesiumCockpit(),
     },
     // Add Data
     {
@@ -1962,6 +2062,7 @@ export function TopToolbar({
           onSaveAsTemplate={() => projectFiles.handleSaveAsTemplate()}
           onShare={() => setShareDialogOpen(true)}
           onExportHtml={() => void projectFiles.handleExportHtml()}
+          onExportCesiumCockpit={() => void projectFiles.handleExportCesiumCockpit()}
           onCollaborate={() => setCollaborateDialogOpen(true)}
           onPrintLayout={() => setPrintLayoutOpen(true)}
           onOpenOfflineBasemap={onOpenBasemapExtract}

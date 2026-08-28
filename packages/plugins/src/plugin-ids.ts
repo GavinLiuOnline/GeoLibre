@@ -16,3 +16,6 @@ export const ANNOTATIONS_PLUGIN_ID = "maplibre-gl-annotations";
 
 /** GeoAgent: the AI chat control, whose results sync into the store. */
 export const GEOAGENT_PLUGIN_ID = "maplibre-gl-geoagent";
+
+/** 3D Tiles pipeline: import, register (CRS or GCPs), optimize, export. */
+export const TILES3D_PIPELINE_PLUGIN_ID = "geolibre-3d-pipeline";

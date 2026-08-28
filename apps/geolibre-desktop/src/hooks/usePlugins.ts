@@ -65,6 +65,8 @@ import {
   maplibreSunPlugin,
   maplibreRouteAnimationPlugin,
   flightSimulatorPlugin,
+  maplibreTiles3dPipelinePlugin,
+  setTiles3dPipelineZipSaver,
   maplibreSwipePlugin,
   SWIPE_PLUGIN_ID,
   maplibreTimelapsePlugin,
@@ -229,6 +231,7 @@ manager.registerAll([
   maplibreSunPlugin,
   maplibreRouteAnimationPlugin,
   flightSimulatorPlugin,
+  maplibreTiles3dPipelinePlugin,
   // Last visible entry of the Plugins menu; the ids below are skipped by
   // PluginsMenu and surface elsewhere.
   maplibreSamGeoPlugin,
@@ -252,6 +255,15 @@ setTimelapseVideoSaver((blob, { defaultName, extension, mimeType }) =>
       },
     ],
     mimeType,
+  }),
+);
+
+setTiles3dPipelineZipSaver((blob, defaultName) =>
+  saveBinaryFileWithFallback(blob, {
+    defaultName,
+    filters: [{ name: "3D Tiles zip", extensions: ["zip"] }],
+    browserTypes: [{ description: "ZIP", accept: { "application/zip": [".zip"] } }],
+    mimeType: "application/zip",
   }),
 );
 

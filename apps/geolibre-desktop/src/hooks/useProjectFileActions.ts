@@ -12,6 +12,7 @@ import {
 import {
   addArcGISLayer,
   addRasterToMap,
+  buildZip,
   isRecoverableNonTiledRasterError,
   materializeEmbeddableVectorLayers,
 } from "@geolibre/plugins";
@@ -35,10 +36,13 @@ import {
   saveProjectFileToPath,
   saveStartupProjectSnapshot,
   saveTextFileWithFallback,
+  saveBinaryFileWithFallback,
+  readLocalFileBytes,
 } from "../lib/tauri-io";
 import { useDesktopSettingsStore } from "./useDesktopSettings";
 import { buildProjectHtml } from "../lib/html-export";
-import { ensureHtmlFileName, ensureProjectFileName } from "../lib/file-names";
+import { buildCockpitExport } from "../lib/cesium-cockpit-export";
+import { ensureHtmlFileName, ensureProjectFileName, ensureZipFileName } from "../lib/file-names";
 import { mergeStringLists } from "../lib/string-lists";
 import { fetchProjectFromUrl } from "../lib/project-url";
 import { getShareFetch } from "../lib/share-fetch";
@@ -1268,6 +1272,81 @@ export function useProjectFileActions(mapControllerRef: MapControllerRef) {
     }
   };
 
+  const handleExportCesiumCockpit = async (): Promise<boolean> => {
+    if (isSavingRef.current) return false;
+    isSavingRef.current = true;
+    try {
+      const exportProjectGeneration = useAppStore.getState().projectGeneration;
+      const projectName = useAppStore.getState().projectName.trim() || DEFAULT_PROJECT_NAME;
+      const slug =
+        projectName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "") || "geolibre-cockpit";
+      let defaultName = `${slug}-cesium-cockpit.zip`;
+      if (browserSaveFallsBackToDownload()) {
+        const chosen = await askSaveName(
+          defaultName,
+          {
+            title: t("toolbar.item.exportCesiumCockpitAsTitle"),
+            description: t("toolbar.item.exportCesiumCockpitAsDesc"),
+            label: t("toolbar.item.exportCesiumCockpitFileName"),
+            placeholder: t("toolbar.item.exportCesiumCockpitFileNamePlaceholder"),
+          },
+          exportProjectGeneration,
+        );
+        if (chosen === null) return false;
+        defaultName = ensureZipFileName(chosen, `${slug}-cesium-cockpit`);
+      }
+      const { project, defaultProjectName } = await buildEmbeddedProject(projectName);
+      if (useAppStore.getState().projectGeneration !== exportProjectGeneration) return false;
+      const exported = await buildCockpitExport({
+        project: excludeHiddenFieldsFromProject(project),
+        title: defaultProjectName,
+        fetchBytes: async (url) => {
+          if (url.startsWith("blob:") || isHttpUrl(url)) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to fetch ${url} (${response.status})`);
+            return new Uint8Array(await response.arrayBuffer());
+          }
+          let path = url;
+          if (url.startsWith("file:")) {
+            try {
+              const parsed = new URL(url);
+              path = decodeURIComponent(parsed.pathname);
+              if (/^\/[a-zA-Z]:/.test(path)) path = path.slice(1);
+            } catch {
+              path = url.replace(/^file:\/\//, "");
+            }
+          }
+          if (isTauri() && isAbsoluteLocalPath(path)) return readLocalFileBytes(path);
+          throw new Error(`Cannot cache local tileset from ${url}`);
+        },
+      });
+      if (useAppStore.getState().projectGeneration !== exportProjectGeneration) return false;
+      const savedPath = await saveBinaryFileWithFallback(buildZip(exported.files), {
+        defaultName,
+        filters: [{ name: t("toolbar.item.zipFile"), extensions: ["zip"] }],
+        browserTypes: [
+          {
+            description: t("toolbar.item.zipFile"),
+            accept: { "application/zip": [".zip"] },
+          },
+        ],
+        mimeType: "application/zip",
+      });
+      if (useAppStore.getState().projectGeneration !== exportProjectGeneration) return false;
+      return savedPath !== null;
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : t("toolbar.error.couldNotExportCesiumCockpit"),
+      );
+      return false;
+    } finally {
+      isSavingRef.current = false;
+    }
+  };
+
   // Open-change handler for the Open-from-URL dialog; aborts an in-flight fetch
   // and resets the form when the dialog closes.
   const handleProjectUrlDialogOpenChange = (open: boolean) => {
@@ -1327,6 +1406,7 @@ export function useProjectFileActions(mapControllerRef: MapControllerRef) {
     handleSave,
     handleSaveAs,
     handleExportHtml,
+    handleExportCesiumCockpit,
   };
 }
 
