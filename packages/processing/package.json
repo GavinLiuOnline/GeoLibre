@@ -39,10 +39,19 @@
     "geolibre-wasm": "^1.5.3",
     "geotiff": "^3.0.5",
     "onnxruntime-web": "1.29.0",
-    "s2js": "^1.44.0"
+    "s2js": "^1.44.0",
+    "proj4": "^2.22.0",
+    "@tmcw/togeojson": "^7.1.2",
+    "topojson-client": "^3.1.0",
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
+    "meshoptimizer": "^1.2.0"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "@types/proj4": "^2.5.5",
+    "@types/topojson-client": "^3.1.5"
   }
 }
