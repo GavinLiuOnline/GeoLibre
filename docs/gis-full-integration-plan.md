@@ -46,7 +46,7 @@ GeoLibre/
 
 ### Phase 0 — 基线与归档（0.5 天）
 - [ ] gis-full 打 `archive/v0.1.1` tag；GitHub Settings → Archive 仓库；README 顶部加「已并入 GeoLibre」指针
-- [ ] GeoLibre 建长期分支 `feat/gis-full-integration`（所有 Phase 的 PR 都进它，最后一次性合 master）
+- [x] GeoLibre 建长期分支 `feat/gis-full-integration`（所有 Phase 的 PR 都进它，最后一次性合 master）
 
 ### Phase 1 — 纯算法移植（2-3 天，可先独立 PR）
 | 源 | 目标 | 要点 |
@@ -60,6 +60,10 @@ GeoLibre/
 **测试迁移**：vitest → `node --import tsx --test`（GeoLibre 根 `tests/` 约定）；`describe/it/expect` → `node:test` + `node:assert/strict`，机械替换可脚本化。
 
 **验收**：`npm run ci` 全绿；移植算法单测数 ≥ 原用例数（727 中纯逻辑部分）。
+
+**进度**：
+- [x] Slice A（`71989f7f`）：processing 移植（reprojection / optimizer / importers）+ `@geolibre/gis-shared`
+- [x] Slice B：`packages/xyz-cache`（`CacheStorage` 接口 + Node 实现，22 个源文件）+ `tests/` 19 个移植测试文件（vitest → node:test，332 用例全绿，eslint/tsc 零错误）
 
 ### Phase 2 — 编辑器 React 重写（2-4 周，核心工作量）
 按依赖顺序拆 5 个 PR：
