@@ -53,6 +53,8 @@ export interface RibbonContext {
   resetLayout(): void;
   /** 视图页：启用/关闭地图上的 Dock 编辑器布局（GeoLibre 扩展命令） */
   toggleDockEditor(): void;
+  /** 顶点编辑：对当前选中图层开启/结束几何编辑会话 */
+  toggleVertexEdit(): void;
   isElectronAvailable: boolean;
 }
 
@@ -311,7 +313,7 @@ const toolsGroups: RibbonGroup[] = [
     id: 'edit',
     label: '编辑',
     commands: [
-      { id: 'tool.vertex-edit', tab: 'tools', group: 'edit', label: '顶点编辑', icon: 'pin', primary: true, run: (c) => c.setTool('edit-vertex') },
+      { id: 'tool.vertex-edit', tab: 'tools', group: 'edit', label: '顶点编辑', icon: 'pin', primary: true, hint: '对选中图层开启/结束几何编辑', run: (c) => c.toggleVertexEdit() },
       { id: 'tool.pick', tab: 'tools', group: 'edit', label: '拾取要素', icon: 'cursor', primary: true, run: (c) => c.setTool('pick') },
       { id: 'tool.pan', tab: 'tools', group: 'edit', label: '漫游', icon: 'hand', shortcut: 'Esc', primary: true, run: (c) => c.setTool('pan') },
     ],

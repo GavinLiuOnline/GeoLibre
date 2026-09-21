@@ -196,6 +196,7 @@ export function EditMenu({ chrome, mapControllerRef, runRibbon }: EditMenuProps)
             "tool.draw-point",
             "tool.draw-line",
             "tool.draw-polygon",
+            "tool.vertex-edit",
           ]}
           run={runRibbon}
         />

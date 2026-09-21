@@ -208,6 +208,8 @@ interface TopToolbarProps {
   onToggleThemeMode: () => void;
   /** Ribbon「Dock 编辑器布局」开关（由 DesktopShell 注入；未注入时提示兜底） */
   onToggleDockEditor?: () => void;
+  /** 顶点编辑：对选中图层开启/结束几何编辑（DesktopShell 注入） */
+  onToggleVertexEdit?: () => void;
   // Opens the Offline Basemap Extract panel, mounted in DesktopShell over the
   // map so it can stay non-modal (the map is interactive for drawing a bbox).
   onOpenBasemapExtract: () => void;
@@ -239,6 +241,7 @@ export function TopToolbar({
   onOpenProjectHistory,
   onToggleThemeMode,
   onToggleDockEditor,
+  onToggleVertexEdit,
   onOpenBasemapExtract,
   onAddComment,
   viewer = false,
@@ -2256,6 +2259,10 @@ export function TopToolbar({
         if (onToggleDockEditor) onToggleDockEditor();
         else ribbonPending("Dock 编辑器布局");
       },
+      toggleVertexEdit: () => {
+        if (onToggleVertexEdit) onToggleVertexEdit();
+        else ribbonPending("先在图层列表中选择要素图层");
+      },
       isElectronAvailable: false,
     }),
     [
@@ -2269,6 +2276,7 @@ export function TopToolbar({
       setBasemapStyleUrl,
       onToggleThemeMode,
       onToggleDockEditor,
+      onToggleVertexEdit,
     ],
   );
   const runRibbonCommand = useCallback(

@@ -2534,6 +2534,10 @@ export function DesktopShell({
             }}
             onToggleThemeMode={onToggleThemeMode}
             onToggleDockEditor={toggleDockEditor}
+            onToggleVertexEdit={() => {
+              const target = getGeometryEditTargetLayerId() ?? useAppStore.getState().selectedLayerId;
+              if (target) void handleToggleGeometryEdit(target);
+            }}
             onOpenBasemapExtract={() => setBasemapExtractOpen(true)}
             onAddComment={commentTool.toggleTool}
             viewer={layoutOptions.viewer}
