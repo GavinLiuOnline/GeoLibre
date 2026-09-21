@@ -386,11 +386,8 @@ export function ViewMenu({
         )}
       {runRibbon ? (
         <RibbonMenuSection
-          label="视图模式 · 底图 · 布局"
+          label="底图与布局"
           ids={[
-            "view.3d",
-            "view.2d",
-            "view.cv",
             "view.basemap-cycle",
             "view.basemap-mgr",
             "view.reset-layout",
