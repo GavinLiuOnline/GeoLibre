@@ -1,12 +1,15 @@
 import { readControlPreference, writeControlPreference } from "../../lib/control-preferences";
 import { supportsAddDataRenderer } from "../../lib/add-data-renderer";
 import {
+  DEFAULT_BASEMAP,
   DEFAULT_PROJECT_NAME,
   excludeHiddenFieldsFromProject,
   redactProjectCredentials,
   serializeProject,
   useAppStore,
 } from "@geolibre/core";
+import { RibbonMenu } from "../command/ribbon/RibbonMenu";
+import type { RibbonContext } from "../command/ribbon/commands";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -2170,8 +2173,102 @@ export function TopToolbar({
     renderLabel: renderToolbarLabel,
   };
 
+  // ---------------------------------------------------------------------------
+  // Ribbon 命令系统（Phase 2 PR1）：注册表见 command/ribbon/commands.ts。
+  // 已接入的入口直连既有动作；未接入的以 ribbonNotice 提示兜底（随后续 PR 逐个消除）。
+  // ---------------------------------------------------------------------------
+  const setPrimaryRenderer = useAppStore((s) => s.setPrimaryRenderer);
+  const setBasemapStyleUrl = useAppStore((s) => s.setBasemapStyleUrl);
+  const [ribbonNotice, setRibbonNotice] = useState<string | null>(null);
+  const ribbonNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ribbonPending = useCallback((label: string) => {
+    setRibbonNotice(`「${label}」将在后续阶段接入`);
+    if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    ribbonNoticeTimerRef.current = setTimeout(() => setRibbonNotice(null), 2600);
+  }, []);
+  useEffect(
+    () => () => {
+      if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    },
+    [],
+  );
+  const ribbonCtx = useMemo<RibbonContext>(
+    () => ({
+      openDialog: (key) => {
+        if (key === "import") {
+          setAddDataKind("raster");
+          return;
+        }
+        if (key === "settings") {
+          ribbonPending("设置面板（工具栏内已有入口）");
+          return;
+        }
+        ribbonPending(key === "publish" ? "一键发布（Phase 3）" : key);
+      },
+      openBasemapDialog: () => onOpenBasemapExtract(),
+      openHostDirectoryDialog: () => ribbonPending("服务端托管（Phase 3）"),
+      openServiceListDialog: () => ribbonPending("服务管理（Phase 3）"),
+      openUrlImportDialog: () => setAddDataKind("xyz"),
+      openSceneListDialog: () => ribbonPending("从服务端打开（Phase 3）"),
+      openProjectPackage: (tab) => {
+        if (tab === "import") void projectFiles.handleOpenFromFile();
+        else void projectFiles.handleSaveAs();
+      },
+      openGenerateCache: () => ribbonPending("缓存生成面板（后续 PR）"),
+      openRegionCache: () => ribbonPending("框选区域缓存（后续 PR）"),
+      openAboutDialog: () => setAboutOpen(true),
+      pickAndOpenScene: () => ribbonPending("从服务端打开（Phase 3）"),
+      saveToServer: async () => {
+        await projectFiles.handleSave();
+      },
+      downloadScene: () => ribbonPending("服务端下载（Phase 3）"),
+      newScene: () => setNewProjectDialogOpen(true),
+      setTool: () => ribbonPending("绘制工具（Phase 4 接入）"),
+      setView: (mode) => {
+        if (mode === "3D") setPrimaryRenderer("cesium");
+        else if (mode === "2D") setPrimaryRenderer("maplibre");
+        else ribbonPending("哥伦布视图");
+      },
+      cycleBasemap: () => {
+        const order = [
+          DEFAULT_BASEMAP,
+          "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+          "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        ];
+        const current = useAppStore.getState().basemapStyleUrl;
+        const next = order[(order.indexOf(current) + 1) % order.length] ?? DEFAULT_BASEMAP;
+        setBasemapStyleUrl(next);
+      },
+      flipTheme: () => onToggleThemeMode(),
+      pickLocalCacheDir: () => ribbonPending("本地缓存目录导入（接入 xyz-cache 包）"),
+      resetLayout: () => ribbonPending("布局重置"),
+      isElectronAvailable: false,
+    }),
+    [
+      ribbonPending,
+      setAddDataKind,
+      onOpenBasemapExtract,
+      projectFiles,
+      setAboutOpen,
+      setNewProjectDialogOpen,
+      setPrimaryRenderer,
+      setBasemapStyleUrl,
+      onToggleThemeMode,
+    ],
+  );
+
   return (
-    <header
+    <>
+      {ribbonNotice ? (
+        <div
+          role="status"
+          className="pointer-events-none fixed inset-x-0 top-12 z-[80] mx-auto w-fit rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md"
+        >
+          {ribbonNotice}
+        </div>
+      ) : null}
+      <RibbonMenu ctx={ribbonCtx} className="shrink-0" />
+      <header
       className={cn(
         "flex min-h-11 min-w-0 shrink-0 items-center gap-1 border-b bg-card py-1",
         compact
@@ -2606,5 +2703,6 @@ export function TopToolbar({
         ) : null}
       </div>
     </header>
+    </>
   );
 }
