@@ -9,8 +9,8 @@ import {
   useAppStore,
   useDockStore,
 } from "@geolibre/core";
-import { RibbonBody, RibbonTabs } from "../command/ribbon/RibbonMenu";
-import { buildRibbonCommands, type RibbonContext, type RibbonTabId } from "../command/ribbon/commands";
+import { RibbonMenus } from "../command/ribbon/RibbonMenus";
+import type { RibbonContext } from "../command/ribbon/commands";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -2272,9 +2272,6 @@ export function TopToolbar({
       onToggleDockEditor,
     ],
   );
-  const [ribbonTabId, setRibbonTabId] = useState<RibbonTabId | null>("file");
-  const ribbonTabs = useMemo(() => buildRibbonCommands(ribbonCtx), [ribbonCtx]);
-
   return (
     <>
       {ribbonNotice ? (
@@ -2298,12 +2295,7 @@ export function TopToolbar({
         <Map className="h-4 w-4" />
         {showProjectInfo ? <span className="hidden sm:inline">{appTitle}</span> : null}
       </span>
-      <RibbonTabs
-        tabs={ribbonTabs}
-        activeTabId={ribbonTabId}
-        onSelect={(id) => setRibbonTabId((cur) => (cur === id ? null : (id as RibbonTabId)))}
-        className="me-2 flex shrink-0 items-end gap-0.5 self-stretch"
-      />
+      <RibbonMenus ctx={ribbonCtx} chrome={chrome} className="me-1 flex shrink-0 items-center gap-0.5" />
       {!viewer && isMenuVisible(uiProfile, "project") && (
         <ProjectMenu
           chrome={chrome}
@@ -2726,14 +2718,6 @@ export function TopToolbar({
         ) : null}
       </div>
     </header>
-      {ribbonTabId ? (
-        <RibbonBody
-          ctx={ribbonCtx}
-          tabs={ribbonTabs}
-          activeTabId={ribbonTabId}
-          className="border-b border-border bg-background"
-        />
-      ) : null}
     </>
   );
 }
