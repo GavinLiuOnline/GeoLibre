@@ -7,6 +7,7 @@ import {
   redactProjectCredentials,
   serializeProject,
   useAppStore,
+  useDockStore,
 } from "@geolibre/core";
 import { RibbonMenu } from "../command/ribbon/RibbonMenu";
 import type { RibbonContext } from "../command/ribbon/commands";
@@ -2241,7 +2242,7 @@ export function TopToolbar({
       },
       flipTheme: () => onToggleThemeMode(),
       pickLocalCacheDir: () => ribbonPending("本地缓存目录导入（接入 xyz-cache 包）"),
-      resetLayout: () => ribbonPending("布局重置"),
+      resetLayout: () => useDockStore.getState().resetDockLayout(),
       isElectronAvailable: false,
     }),
     [

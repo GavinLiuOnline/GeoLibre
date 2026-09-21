@@ -68,7 +68,7 @@ GeoLibre/
 ### Phase 2 — 编辑器 React 重写（2-4 周，核心工作量）
 按依赖顺序拆 5 个 PR：
 1. **Ribbon 命令系统** ✅：`apps/geolibre-desktop/src/components/command/ribbon/`（注册表 38 条命令 + React 渲染组件 + TopToolbar 接线 + `tests/ribbon-commands.test.ts` 8 用例；服务端/绘制等未接入入口以提示兜底，随后续 PR 消除）
-2. **Dock 面板框架**：`dock/dockStore.ts` + `layoutModel.ts`（纯 TS）搬，DockPanel.vue → React；状态并入 `@geolibre/core` Zustand store
+2. **Dock 面板框架** ✅：`packages/core/src/dock/`（layout-model 纯函数 788 行原样移植 + Zustand `useDockStore` 并入 @geolibre/core，localStorage 持久化）+ `apps/geolibre-desktop/src/components/dock/DockPanel.tsx`（splitter 拖拽/标签组/浮动窗口 React 重写）+ 17 个单测；Ribbon「重置默认布局」已接真实动作。PR3 起填充真实面板内容并挂载
 3. **图层面板 + 属性面板 + 样式编辑器**：对接 packages/map 的 `CesiumCanvas` / feature-selection / dynamic-style-property（不重复造 Cesium 封装）
 4. **绘制与几何编辑**：`drawGeometry` / `geojsonEdit` 纯逻辑已迁，交互层用 Cesium 事件重接（ScreenSpaceEventHandler）
 5. **缓存/配准/发布面板**：desktopXyz / generateCacheForm / reprojection UI 对接 xyz-cache 包与 sidecar
