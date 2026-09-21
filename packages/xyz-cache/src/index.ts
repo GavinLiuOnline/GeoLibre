@@ -64,51 +64,5 @@ export type {
   CacheStats,
   CacheStorage,
 } from './cache-storage';
-export { NodeCacheStorage, nodeCacheStorage } from './node-cache-storage';
-// 磁盘瓦片管线（xyz-disk 的 boundsFromTileKeys 与 ./bounds 同名，这里显式列出，
-// 不做 `export *` —— 需要磁盘版时直接从模块路径导入）。
-export {
-  XYZ_DISK_TILE_EXTENSIONS,
-  XYZ_DISK_WORLD_BOUNDS,
-  XYZ_DISK_MAX_ZOOM,
-  DEFAULT_XYZ_DISK_SCAN_LIMITS,
-  XyzDiskError,
-  StreamingZipWriter,
-  crc32Update,
-  assertExportPaths,
-  parseDiskDir,
-  parseTileFileName,
-  lngToTileX,
-  latToTileY,
-  tileXToLon as diskTileXToLon,
-  tileYToLat as diskTileYToLat,
-  tileToBounds,
-  tilePassesFilter,
-  xSpansForBounds,
-  yRangeForBounds,
-  estimateFilterTileCount,
-  scanXyzDirectory,
-  buildDiskImportParams,
-  normalizeDiskExportSpec,
-  runDiskTileExport,
-  XyzDiskExportRunner,
-} from './xyz-disk';
-export type {
-  XyzDiskTilingMode,
-  XyzDiskScanLimits,
-  XyzDiskLevelStat,
-  XyzDiskScanResult,
-  XyzDiskTileFilter,
-  ParsedDiskDir,
-  XyzDiskImportParams,
-  DiskExportFormat,
-  DiskExportPhase,
-  DiskExportSpec,
-  DiskExportProgress,
-  DiskExportResult,
-  NormalizedDiskExportSpec,
-  DiskExportHooks,
-  DiskExportJobStatus,
-  DiskExportJobSnapshot,
-  StartedDiskExportJob,
-} from './xyz-disk';
+// xyz-disk / node-cache-storage 为 Node 专属模块（node:fs/node:crypto），
+// 已移至 Node 入口 `@geolibre/xyz-cache/node`——浏览器 bundle 不应引用；
