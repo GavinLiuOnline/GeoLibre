@@ -7633,6 +7633,7 @@
       "pluginPanelRightOfLayers": "插件面板（图层右侧）",
       "map": "地图",
       "pluginFloatingPanels": "插件浮动面板",
+      "dockEditor": "Dock 编辑器布局",
       "selectionPanels": "选择面板",
       "sunSimulationPanel": "日照模拟面板",
       "routeAnimationPanel": "路线动画面板",

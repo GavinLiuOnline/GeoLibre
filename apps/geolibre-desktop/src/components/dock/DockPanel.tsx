@@ -144,7 +144,7 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
       return (
         <div
           className={cn(
-            "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background",
+            "pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background",
             focusedPanelId === panel.id && "ring-1 ring-inset ring-ring/40",
           )}
           onPointerDown={() => store.getState().setFocusedPanel(panel.id)}
@@ -158,7 +158,7 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
 
   const renderTabs = useCallback(
     (tabs: TabsNode): ReactNode => (
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="pointer-events-auto flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <div
           className="flex shrink-0 items-stretch gap-px border-b border-border bg-muted/40"
           role="tablist"
@@ -208,7 +208,7 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
         <div
           ref={(el) => setContainerRef(id, el)}
           className={cn(
-            "flex min-h-0 min-w-0",
+            "pointer-events-none flex min-h-0 min-w-0",
             dir === "row" ? "flex-row" : "flex-col",
           )}
         >
@@ -220,7 +220,7 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
                   aria-orientation={dir === "row" ? "vertical" : "horizontal"}
                   onPointerDown={(ev) => startDrag(ev, id, i - 1, dir)}
                   className={cn(
-                    "shrink-0 bg-transparent transition-colors hover:bg-primary/30",
+                    "pointer-events-auto shrink-0 bg-transparent transition-colors hover:bg-primary/30",
                     dir === "row"
                       ? "w-1 cursor-col-resize"
                       : "h-1 cursor-row-resize",
@@ -246,7 +246,7 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
       floating.map((f) => (
         <div
           key={f.id}
-          className="fixed flex flex-col overflow-hidden rounded-md border border-border bg-background shadow-xl"
+          className="pointer-events-auto fixed flex flex-col overflow-hidden rounded-md border border-border bg-background shadow-xl"
           style={{ left: f.left, top: f.top, width: f.width, height: f.height, zIndex: f.zIndex }}
           onPointerDown={() => store.getState().focusFloating(f.panel.id)}
         >
@@ -314,13 +314,13 @@ export function DockPanel({ componentRegistry, className }: DockPanelProps) {
   );
 
   return (
-    <div className={cn("relative flex min-h-0 min-w-0 flex-1 flex-col", className)} data-testid="dock-panel">
+    <div className={cn("pointer-events-none relative flex min-h-0 min-w-0 flex-1 flex-col", className)} data-testid="dock-panel">
       {renderNode(root)}
       {floatingWindows}
       {contextMenu ? (
         <div
           role="menu"
-          className="fixed z-[90] min-w-32 rounded-md border border-border bg-popover p-1 shadow-md"
+          className="pointer-events-auto fixed z-[90] min-w-32 rounded-md border border-border bg-popover p-1 shadow-md"
           style={{ left: contextMenu.left, top: contextMenu.top }}
         >
           <button

@@ -49,6 +49,7 @@ function makeCtx(overrides: CtxOverrides = {}): RibbonContext {
     pickLocalCacheDir: mock.fn(),
     pickDesktopNativeDir: mock.fn(),
     resetLayout: mock.fn(),
+    toggleDockEditor: mock.fn(),
     isElectronAvailable: false,
   };
   return { ...base, ...overrides } as RibbonContext;
@@ -160,6 +161,9 @@ describe('ribbon · 命令注册表', () => {
 
     findCommand('view.reset-layout')?.run(ctx);
     assert.strictEqual((ctx.resetLayout as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+
+    findCommand('view.toggle-dock')?.run(ctx);
+    assert.strictEqual((ctx.toggleDockEditor as ReturnType<typeof mock.fn>).mock.callCount(), 1);
 
     // 桌面原生入口桥缺失（pickDesktopNativeDir 未提供）时不应抛错
     const webCtx = makeCtx({ pickDesktopNativeDir: undefined });

@@ -207,6 +207,8 @@ interface TopToolbarProps {
   onOpenDiagnostics: () => void;
   onOpenProjectHistory: () => void;
   onToggleThemeMode: () => void;
+  /** Ribbon「Dock 编辑器布局」开关（由 DesktopShell 注入；未注入时提示兜底） */
+  onToggleDockEditor?: () => void;
   // Opens the Offline Basemap Extract panel, mounted in DesktopShell over the
   // map so it can stay non-modal (the map is interactive for drawing a bbox).
   onOpenBasemapExtract: () => void;
@@ -237,6 +239,7 @@ export function TopToolbar({
   onOpenDiagnostics,
   onOpenProjectHistory,
   onToggleThemeMode,
+  onToggleDockEditor,
   onOpenBasemapExtract,
   onAddComment,
   viewer = false,
@@ -2243,6 +2246,10 @@ export function TopToolbar({
       flipTheme: () => onToggleThemeMode(),
       pickLocalCacheDir: () => ribbonPending("本地缓存目录导入（接入 xyz-cache 包）"),
       resetLayout: () => useDockStore.getState().resetDockLayout(),
+      toggleDockEditor: () => {
+        if (onToggleDockEditor) onToggleDockEditor();
+        else ribbonPending("Dock 编辑器布局");
+      },
       isElectronAvailable: false,
     }),
     [
@@ -2255,6 +2262,7 @@ export function TopToolbar({
       setPrimaryRenderer,
       setBasemapStyleUrl,
       onToggleThemeMode,
+      onToggleDockEditor,
     ],
   );
 

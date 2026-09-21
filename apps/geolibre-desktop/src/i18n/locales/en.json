@@ -7791,6 +7791,7 @@
       "pluginPanelRightOfLayers": "Plugin panel (right of Layers)",
       "map": "Map",
       "pluginFloatingPanels": "Plugin floating panels",
+      "dockEditor": "Dock editor layout",
       "modelBuilder": "Model Builder",
       "selectionPanels": "Selection panels",
       "sunSimulationPanel": "Sun simulation panel",

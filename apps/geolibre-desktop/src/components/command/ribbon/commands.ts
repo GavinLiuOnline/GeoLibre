@@ -51,6 +51,8 @@ export interface RibbonContext {
   pickDesktopNativeDir?(): void;
   /** 视图页：恢复 Dock 面板默认布局 */
   resetLayout(): void;
+  /** 视图页：启用/关闭地图上的 Dock 编辑器布局（GeoLibre 扩展命令） */
+  toggleDockEditor(): void;
   isElectronAvailable: boolean;
 }
 
@@ -279,6 +281,15 @@ const viewGroups: RibbonGroup[] = [
         icon: 'refresh',
         hint: '恢复 Dock 面板默认布局（图层 / 属性 / 工具 / 查询 / 输出窗）',
         run: (c) => c.resetLayout(),
+      },
+      {
+        id: 'view.toggle-dock',
+        tab: 'view',
+        group: 'layout',
+        label: 'Dock 编辑器布局',
+        icon: 'layers',
+        hint: '在地图上启用/关闭 Dock 面板（GIS 编辑器布局）',
+        run: (c) => c.toggleDockEditor(),
       },
     ],
   },
