@@ -2437,6 +2437,7 @@ export function TopToolbar({
             openAddDataKind("deckgl-viz");
           }}
           onOpenOsmPbfDialog={() => osmPbf.setDialogOpen(true)}
+          runRibbon={runRibbonCommand}
         />
       )}
       {!viewer &&
