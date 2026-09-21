@@ -41,10 +41,13 @@ import {
 import { editMenuItemCapability } from "../../../lib/deployment-gates";
 import { isMenuItemVisible } from "../../../lib/ui-profile";
 import type { ToolbarChrome } from "./constants";
+import { RibbonMenuSection } from "./RibbonSection";
 
 interface EditMenuProps {
   chrome: ToolbarChrome;
   mapControllerRef: React.RefObject<MapEngine | null>;
+  /** Ribbon 命令分发器（GIS 绘制工具条目并入本菜单） */
+  runRibbon?: (id: string) => void;
 }
 
 /**
@@ -52,7 +55,7 @@ interface EditMenuProps {
  * the feature-selection tools (#1314) — the two Select dialogs and actions on
  * the live selection, which always belongs to the active layer.
  */
-export function EditMenu({ chrome, mapControllerRef }: EditMenuProps) {
+export function EditMenu({ chrome, mapControllerRef, runRibbon }: EditMenuProps) {
   const { t } = useTranslation();
   const temporalCanUndo = useStore(useAppStore.temporal, (s) => s.pastStates.length > 0);
   const temporalCanRedo = useStore(useAppStore.temporal, (s) => s.futureStates.length > 0);
@@ -186,6 +189,23 @@ export function EditMenu({ chrome, mapControllerRef }: EditMenuProps) {
             <span className="whitespace-nowrap">{t("toolbar.item.exportSelection")}</span>
           </DropdownMenuItem>
         )}
+      {runRibbon ? (
+        <RibbonMenuSection
+          label="GIS 绘制工具"
+          ids={[
+            "tool.draw-point",
+            "tool.draw-line",
+            "tool.draw-polygon",
+            "tool.rect-select",
+            "tool.vertex-edit",
+            "tool.pick",
+            "tool.pan",
+            "tool.settings",
+            "tool.theme",
+          ]}
+          run={runRibbon}
+        />
+      ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

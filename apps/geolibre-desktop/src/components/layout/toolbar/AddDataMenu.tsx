@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@geolibre/ui";
+import { RibbonMenuSection } from "./RibbonSection";
 import { Database } from "lucide-react";
 import { useAppStore, type MapRendererKind } from "@geolibre/core";
 import { Fragment, useMemo } from "react";
@@ -35,6 +36,8 @@ interface AddDataMenuProps {
   onSetAddDataKind: (kind: AddDataKind) => void;
   onAddGltfModel: () => void;
   onOpenOsmPbfDialog: () => void;
+  /** Ribbon 命令分发器（本地缓存/数据处理条目并入本菜单） */
+  runRibbon?: (id: string) => void;
 }
 
 interface AddDataItem {
@@ -59,6 +62,7 @@ export function AddDataMenu({
   onSetAddDataKind,
   onAddGltfModel,
   onOpenOsmPbfDialog,
+  runRibbon,
 }: AddDataMenuProps) {
   const { t } = useTranslation();
   const uiProfile = useDesktopSettingsStore((state) => state.desktopSettings.uiProfile);
@@ -200,6 +204,26 @@ export function AddDataMenu({
             })}
           </Fragment>
         ))}
+      {runRibbon ? (
+        <RibbonMenuSection
+          label="本地缓存与数据处理"
+          ids={[
+            "data.import-url",
+            "data.import-xyz-dir",
+            "data.import-3dtiles-dir",
+            "data.host-directory",
+            "data.gen-2d",
+            "data.gen-3d",
+            "data.gen-region",
+            "data.reprojection",
+            "data.optimizer",
+            "cache.services",
+            "cache.host-dir",
+            "publish.oneclick",
+          ]}
+          run={runRibbon}
+        />
+      ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

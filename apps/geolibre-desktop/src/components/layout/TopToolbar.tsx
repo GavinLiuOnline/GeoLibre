@@ -9,8 +9,7 @@ import {
   useAppStore,
   useDockStore,
 } from "@geolibre/core";
-import { RibbonMenus } from "../command/ribbon/RibbonMenus";
-import type { RibbonContext } from "../command/ribbon/commands";
+import { findCommand, type RibbonContext } from "../command/ribbon/commands";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -2272,6 +2271,12 @@ export function TopToolbar({
       onToggleDockEditor,
     ],
   );
+  const runRibbonCommand = useCallback(
+    (id: string) => {
+      findCommand(id)?.run(ribbonCtx);
+    },
+    [ribbonCtx],
+  );
   return (
     <>
       {ribbonNotice ? (
@@ -2295,7 +2300,6 @@ export function TopToolbar({
         <Map className="h-4 w-4" />
         {showProjectInfo ? <span className="hidden sm:inline">{appTitle}</span> : null}
       </span>
-      <RibbonMenus ctx={ribbonCtx} chrome={chrome} className="me-1 flex shrink-0 items-center gap-0.5" />
       {!viewer && isMenuVisible(uiProfile, "project") && (
         <ProjectMenu
           chrome={chrome}
@@ -2325,7 +2329,7 @@ export function TopToolbar({
         />
       )}
       {!viewer && isMenuVisible(uiProfile, "edit") && (
-        <EditMenu chrome={chrome} mapControllerRef={mapControllerRef} />
+        <EditMenu chrome={chrome} mapControllerRef={mapControllerRef} runRibbon={runRibbonCommand} />
       )}
       {/* `|| primaryRenderer !== "maplibre"`: an admin or custom profile can hide
           the whole "view" menu via `hiddenMenus`, which ViewMenu's own item-level
@@ -2382,6 +2386,7 @@ export function TopToolbar({
           }}
           onZoomIn={() => mapControllerRef.current?.zoomIn()}
           onZoomOut={() => mapControllerRef.current?.zoomOut()}
+          runRibbon={runRibbonCommand}
         />
       )}
       <NewProjectDialog
@@ -2403,6 +2408,7 @@ export function TopToolbar({
             openAddDataKind("deckgl-viz");
           }}
           onOpenOsmPbfDialog={() => osmPbf.setDialogOpen(true)}
+          runRibbon={runRibbonCommand}
         />
       )}
       {!viewer &&

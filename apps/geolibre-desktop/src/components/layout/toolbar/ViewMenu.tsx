@@ -37,6 +37,7 @@ import { useDesktopSettingsStore } from "../../../hooks/useDesktopSettings";
 import type { ViewportHistory } from "../../../hooks/useViewportHistory";
 import { isMenuItemVisible, isMenuVisible } from "../../../lib/ui-profile";
 import type { ToolbarChrome } from "./constants";
+import { RibbonMenuSection } from "./RibbonSection";
 
 /** Selectable map-grid presets offered in the Split View submenu. */
 const SPLIT_VIEW_PRESETS: ReadonlyArray<{
@@ -86,6 +87,8 @@ interface ViewMenuProps {
   onZoomIn: () => void;
   /** Animate the map out by one zoom level. */
   onZoomOut: () => void;
+  /** Ribbon 命令分发器（视图模式/底图/布局条目并入本菜单） */
+  runRibbon?: (id: string) => void;
 }
 
 /**
@@ -106,6 +109,7 @@ export function ViewMenu({
   onViewInGoogleMaps,
   onZoomIn,
   onZoomOut,
+  runRibbon,
 }: ViewMenuProps) {
   const { t } = useTranslation();
   const uiProfile = useDesktopSettingsStore((s) => s.desktopSettings.uiProfile);
@@ -380,6 +384,21 @@ export function ViewMenu({
             <span className="whitespace-nowrap">{t("toolbar.item.viewInGoogleEarth")}</span>
           </DropdownMenuItem>
         )}
+      {runRibbon ? (
+        <RibbonMenuSection
+          label="视图模式 · 底图 · 布局"
+          ids={[
+            "view.3d",
+            "view.2d",
+            "view.cv",
+            "view.basemap-cycle",
+            "view.basemap-mgr",
+            "view.reset-layout",
+            "view.toggle-dock",
+          ]}
+          run={runRibbon}
+        />
+      ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
