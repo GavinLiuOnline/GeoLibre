@@ -164,6 +164,7 @@ import { KnowledgeCardPanel, type KnowledgePlace } from "./KnowledgeCardPanel";
 import { KnowledgeCardConsentDialog } from "./KnowledgeCardConsentDialog";
 import { MapGrid } from "./MapGrid";
 import { DockPanel } from "../dock/DockPanel";
+import { DockOutputPanel, DockPropertyPanel } from "../dock/panels";
 import { PrimaryMapboxCanvas } from "./PrimaryMapboxCanvas";
 import { PrimaryArcgisCanvas } from "./PrimaryArcgisCanvas";
 import { PrimaryCesiumCanvas } from "./PrimaryCesiumCanvas";
@@ -2467,6 +2468,8 @@ export function DesktopShell({
   const toggleDockEditor = useCallback(() => setDockEditorVisible((v) => !v), []);
   const dockContentRegistry = useMemo(
     () => ({
+      PropertyPanel: () => <DockPropertyPanel />,
+      OutputWindow: () => <DockOutputPanel />,
       LayerPanel: (panelProps: Record<string, unknown>) => (
         <LayerPanel
           themeMode={themeMode}

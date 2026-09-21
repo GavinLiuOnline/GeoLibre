@@ -9,8 +9,8 @@ import {
   useAppStore,
   useDockStore,
 } from "@geolibre/core";
-import { RibbonMenu } from "../command/ribbon/RibbonMenu";
-import type { RibbonContext } from "../command/ribbon/commands";
+import { RibbonBody, RibbonTabs } from "../command/ribbon/RibbonMenu";
+import { buildRibbonCommands, type RibbonContext, type RibbonTabId } from "../command/ribbon/commands";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -2227,7 +2227,14 @@ export function TopToolbar({
       },
       downloadScene: () => ribbonPending("服务端下载（Phase 3）"),
       newScene: () => setNewProjectDialogOpen(true),
-      setTool: () => ribbonPending("绘制工具（Phase 4 接入）"),
+      setTool: (tool) => {
+        if (tool === "draw-point" || tool === "draw-line" || tool === "draw-polygon") {
+          setFieldCollectionOpen(true);
+          return;
+        }
+        if (tool === "pan") return; // 地图默认即漫游
+        ribbonPending("顶点编辑 / 拾取 / 框选（后续 PR 接入）");
+      },
       setView: (mode) => {
         if (mode === "3D") setPrimaryRenderer("cesium");
         else if (mode === "2D") setPrimaryRenderer("maplibre");
@@ -2265,6 +2272,8 @@ export function TopToolbar({
       onToggleDockEditor,
     ],
   );
+  const [ribbonTabId, setRibbonTabId] = useState<RibbonTabId | null>("file");
+  const ribbonTabs = useMemo(() => buildRibbonCommands(ribbonCtx), [ribbonCtx]);
 
   return (
     <>
@@ -2276,7 +2285,6 @@ export function TopToolbar({
           {ribbonNotice}
         </div>
       ) : null}
-      <RibbonMenu ctx={ribbonCtx} className="shrink-0" />
       <header
       className={cn(
         "flex min-h-11 min-w-0 shrink-0 items-center gap-1 border-b bg-card py-1",
@@ -2290,6 +2298,12 @@ export function TopToolbar({
         <Map className="h-4 w-4" />
         {showProjectInfo ? <span className="hidden sm:inline">{appTitle}</span> : null}
       </span>
+      <RibbonTabs
+        tabs={ribbonTabs}
+        activeTabId={ribbonTabId}
+        onSelect={(id) => setRibbonTabId((cur) => (cur === id ? null : (id as RibbonTabId)))}
+        className="me-2 flex shrink-0 items-end gap-0.5 self-stretch"
+      />
       {!viewer && isMenuVisible(uiProfile, "project") && (
         <ProjectMenu
           chrome={chrome}
@@ -2712,6 +2726,14 @@ export function TopToolbar({
         ) : null}
       </div>
     </header>
+      {ribbonTabId ? (
+        <RibbonBody
+          ctx={ribbonCtx}
+          tabs={ribbonTabs}
+          activeTabId={ribbonTabId}
+          className="border-b border-border bg-background"
+        />
+      ) : null}
     </>
   );
 }
