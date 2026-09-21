@@ -10,6 +10,8 @@ import {
   useDockStore,
 } from "@geolibre/core";
 import { findCommand, type RibbonContext } from "../command/ribbon/commands";
+import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
+import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -1368,6 +1370,8 @@ export function TopToolbar({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [printLayoutOpen, setPrintLayoutOpen] = useState(false);
   const [fieldCollectionOpen, setFieldCollectionOpen] = useState(false);
+  const [reprojectionOpen, setReprojectionOpen] = useState(false);
+  const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
   const [gpsTrackingOpen, setGpsTrackingOpen] = useState(false);
   const [recordTourOpen, setRecordTourOpen] = useState(false);
   const [recordVideoOpen, setRecordVideoOpen] = useState(false);
@@ -2220,8 +2224,15 @@ export function TopToolbar({
         if (tab === "import") void projectFiles.handleOpenFromFile();
         else void projectFiles.handleSaveAs();
       },
-      openGenerateCache: () => ribbonPending("缓存生成面板（后续 PR）"),
-      openRegionCache: () => ribbonPending("框选区域缓存（后续 PR）"),
+      openGenerateCache: (tab) => {
+        if (tab === "3d") {
+          ribbonPending("3D Tiles 生成（后续 PR）");
+          return;
+        }
+        setCacheDialog("2d");
+      },
+      openRegionCache: () => setCacheDialog("region"),
+      openReprojectionDialog: () => setReprojectionOpen(true),
       openAboutDialog: () => setAboutOpen(true),
       pickAndOpenScene: () => ribbonPending("从服务端打开（Phase 3）"),
       saveToServer: async () => {
@@ -2403,6 +2414,16 @@ export function TopToolbar({
         onSaveCurrentProject={projectFiles.handleSave}
         onProjectCreated={resetRuntimeControlsForNewProject}
       />
+      <ReprojectionDialog open={reprojectionOpen} onOpenChange={setReprojectionOpen} />
+      {cacheDialog ? (
+        <GenerateCacheDialog
+          open
+          onOpenChange={(o) => {
+            if (!o) setCacheDialog(null);
+          }}
+          mode={cacheDialog === "region" ? "region" : "vector"}
+        />
+      ) : null}
       {!viewer && isMenuVisible(uiProfile, "addData") && deploymentCapabilities.has("data:add") && (
         <AddDataMenu
           disabled={!addDataReady}

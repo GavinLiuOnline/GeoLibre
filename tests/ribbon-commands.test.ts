@@ -51,6 +51,9 @@ function makeCtx(overrides: CtxOverrides = {}): RibbonContext {
     resetLayout: mock.fn(),
     toggleDockEditor: mock.fn(),
     toggleVertexEdit: mock.fn(),
+    openReprojectionDialog: mock.fn(),
+    openGenerateCache: mock.fn(),
+    openRegionCache: mock.fn(),
     isElectronAvailable: false,
   };
   return { ...base, ...overrides } as RibbonContext;
@@ -168,6 +171,17 @@ describe('ribbon · 命令注册表', () => {
 
     findCommand('tool.vertex-edit')?.run(ctx);
     assert.strictEqual((ctx.toggleVertexEdit as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+
+    findCommand('data.reprojection')?.run(ctx);
+    assert.strictEqual((ctx.openReprojectionDialog as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+
+    findCommand('data.gen-2d')?.run(ctx);
+    assert.strictEqual(
+      (ctx.openGenerateCache as ReturnType<typeof mock.fn>).mock.calls[0]?.arguments[0],
+      '2d',
+    );
+    findCommand('data.gen-region')?.run(ctx);
+    assert.strictEqual((ctx.openRegionCache as ReturnType<typeof mock.fn>).mock.callCount(), 1);
 
     // 桌面原生入口桥缺失（pickDesktopNativeDir 未提供）时不应抛错
     const webCtx = makeCtx({ pickDesktopNativeDir: undefined });

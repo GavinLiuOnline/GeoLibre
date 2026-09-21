@@ -37,6 +37,8 @@ export interface RibbonContext {
   openSceneListDialog(): void;
   openProjectPackage(tab: ProjectPackageTab): void;
   openGenerateCache(tab: GenerateCacheTab): void;
+  /** 坐标重投影对话框（PR5 真实现） */
+  openReprojectionDialog(): void;
   openRegionCache(): void;
   openAboutDialog(): void;
   pickAndOpenScene(): void;
@@ -223,7 +225,7 @@ const dataGroups: RibbonGroup[] = [
     id: 'transform',
     label: '配准 / 轻量化',
     commands: [
-      { id: 'data.reprojection', tab: 'data', group: 'transform', label: '坐标配准…', icon: 'compress', run: (c) => c.openDialog('reprojection') },
+      { id: 'data.reprojection', tab: 'data', group: 'transform', label: '坐标重投影…', icon: 'compress', hint: 'proj4 矢量重投影，纯客户端', run: (c) => c.openReprojectionDialog() },
       { id: 'data.optimizer', tab: 'data', group: 'transform', label: '数据轻量化…', icon: 'compress', run: (c) => c.openDialog('optimizer') },
     ],
   },
