@@ -12,6 +12,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@geolibre/ui";
+import { RibbonMenuSection } from "./RibbonSection";
 import { Wrench } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -51,6 +52,8 @@ export const EARTH_ENGINE_AVAILABLE = isEarthEngineAvailable();
 
 interface ProcessingMenuProps {
   chrome: ToolbarChrome;
+  /** Ribbon 命令分发器（数据轻量化等并入本菜单） */
+  runRibbon?: (id: string) => void;
   earthEnginePanel: ToolbarPanel;
   onOpenNetworkTool: (kind: NetworkToolKind) => void;
   onOpenPlanetaryComputer: () => void;
@@ -60,6 +63,7 @@ interface ProcessingMenuProps {
 /** The Processing menu: assistant, toolboxes, conversion/vector/network/statistics/raster submenus. */
 export function ProcessingMenu({
   chrome,
+  runRibbon,
   earthEnginePanel,
   onOpenNetworkTool,
   onOpenPlanetaryComputer,
@@ -815,6 +819,9 @@ export function ProcessingMenu({
             `processing:run` disables are spread across the toolbox block and
             the workspaces block, and each points here with aria-describedby. */}
         <CapabilityNotice id={PROCESSING_DENIED_ID} capability={processingCap} />
+      {runRibbon ? (
+        <RibbonMenuSection label="数据优化" ids={["data.optimizer"]} run={runRibbon} />
+      ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

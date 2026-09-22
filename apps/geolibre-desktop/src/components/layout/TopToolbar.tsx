@@ -2322,6 +2322,15 @@ export function TopToolbar({
       onCancel: () => setRegionDrawArmed(false),
     });
   }, [regionDrawArmed, mapControllerRef, mapReadyGeneration]);
+
+  // 框选范围预览（drawExtent 只捕指针不画图；可见矩形由 showExtent 绘制，
+  // 与底图提取面板同机制）：拖拽中与生成对话框打开期间保持显示
+  useEffect(() => {
+    if (!regionBbox || !(regionDrawArmed || cacheDialog === "region")) return;
+    const engine = mapControllerRef.current;
+    if (!engine) return;
+    return engine.showExtent(regionBbox);
+  }, [regionBbox, regionDrawArmed, cacheDialog, mapControllerRef, mapReadyGeneration]);
   return (
     <>
       {ribbonNotice ? (
@@ -2348,6 +2357,7 @@ export function TopToolbar({
       {!viewer && isMenuVisible(uiProfile, "project") && (
         <ProjectMenu
           chrome={chrome}
+          runRibbon={runRibbonCommand}
           collaborationEnabled={collaboration.enabled}
           shareHostStatus={shareHost.status}
           onNewProject={() => setNewProjectDialogOpen(true)}
@@ -2472,6 +2482,7 @@ export function TopToolbar({
         deploymentCapabilities.has("processing:run") && (
           <ProcessingMenu
             chrome={chrome}
+            runRibbon={runRibbonCommand}
             earthEnginePanel={panels.earthEngine}
             onOpenNetworkTool={consent.openNetworkTool}
             onOpenPlanetaryComputer={handleOpenPlanetaryComputer}

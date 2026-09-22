@@ -206,7 +206,7 @@ export function AddDataMenu({
         ))}
       {runRibbon ? (
         <RibbonMenuSection
-          label="坐标 · 生成缓存 · 发布"
+          label="坐标重投影 · 生成缓存"
           ids={[
             "data.reprojection",
             "data.gen-2d",
@@ -214,11 +214,6 @@ export function AddDataMenu({
             "data.gen-3d",
             "data.import-xyz-dir",
             "data.import-3dtiles-dir",
-            "data.host-directory",
-            "data.optimizer",
-            "cache.services",
-            "cache.host-dir",
-            "publish.oneclick",
           ]}
           run={runRibbon}
         />
