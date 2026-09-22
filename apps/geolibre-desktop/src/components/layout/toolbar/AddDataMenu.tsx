@@ -206,11 +206,19 @@ export function AddDataMenu({
         ))}
       {runRibbon ? (
         <RibbonMenuSection
-          label="坐标与缓存"
+          label="坐标 · 生成缓存 · 发布"
           ids={[
             "data.reprojection",
             "data.gen-2d",
             "data.gen-region",
+            "data.gen-3d",
+            "data.import-xyz-dir",
+            "data.import-3dtiles-dir",
+            "data.host-directory",
+            "data.optimizer",
+            "cache.services",
+            "cache.host-dir",
+            "publish.oneclick",
           ]}
           run={runRibbon}
         />

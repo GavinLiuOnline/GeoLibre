@@ -32,8 +32,9 @@ export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
       {commands.map((cmd) => (
         <DropdownMenuItem
           key={cmd.id}
-          title={cmd.hint ?? cmd.label}
+          title={cmd.pending ? `${cmd.hint ?? cmd.label}（功能开发中，后续阶段接入）` : (cmd.hint ?? cmd.label)}
           data-ribbon-command={cmd.id}
+          disabled={Boolean(cmd.pending)}
           onSelect={() => {
             try {
               run(cmd.id);
@@ -48,6 +49,9 @@ export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
             dangerouslySetInnerHTML={{ __html: ribbonIconSvg(cmd.icon) }}
           />
           <span className="flex-1">{cmd.label}</span>
+          {cmd.pending ? (
+            <span className="text-[10px] leading-none text-muted-foreground">开发中</span>
+          ) : null}
           {cmd.shortcut ? (
             <span className="ms-4 text-xs text-muted-foreground">{cmd.shortcut}</span>
           ) : null}
