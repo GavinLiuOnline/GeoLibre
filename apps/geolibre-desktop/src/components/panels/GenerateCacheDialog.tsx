@@ -7,15 +7,14 @@
   - region：底图 URL 模板 + 矢量图层范围 → 底图瓦片抓取打包
     （generateXyzFromRegion，source='basemap'）。
 
-  产物统一 buildZipBlob 打包为 zip 并 downloadBlob 下载（浏览器路径）；
-  桌面端写盘目录随 Phase 4 Tauri 统一时接入 saveBlobAs。
+  产物统一 buildZipBlob 打包为 zip；桌面端经系统保存对话框写盘
+  （saveBinaryFileWithFallback，Phase 4 Tauri 统一），浏览器回退为普通下载。
 */
 import { useMemo, useState } from "react";
 
 import { useAppStore } from "@geolibre/core";
 import {
   buildZipBlob,
-  downloadBlob,
   generateXyzFromGeoJSON,
   generateXyzFromRegion,
   geojsonExtent,
@@ -34,6 +33,7 @@ import {
 } from "@geolibre/ui";
 
 import { getVectorLayers } from "../../lib/dialog-layer-utils";
+import { saveBinaryFileWithFallback } from "../../lib/tauri-io";
 
 const MIN_ZOOM_MIN = 0;
 const MAX_ZOOM_MAX = 22;
@@ -92,10 +92,17 @@ export function GenerateCacheDialog({ open, onOpenChange, mode, bbox }: Generate
         { label: `XYZ 缓存（${layer.name}）` },
       );
       const filename = `xyz-cache-${layer.name.replace(/[\\/:*?"<>|\s]+/g, "-")}-z${min}-z${max}.zip`;
-      downloadBlob(zip.blob, filename);
+      // 桌面端走系统保存对话框直接写盘（Phase 4 Tauri 统一）；浏览器回退为普通下载
+      const savedPath = await saveBinaryFileWithFallback(zip.blob, {
+        defaultName: filename,
+        filters: [{ name: "ZIP 归档", extensions: ["zip"] }],
+        browserTypes: [{ description: "ZIP 归档", accept: { "application/zip": [".zip"] } }],
+        mimeType: "application/zip",
+      });
       setDone(
         `已生成 ${cache.stats.fileCount} 个瓦片（${(cache.stats.totalBytes / 1024).toFixed(1)} KB），` +
-          `最大层级 z${cache.stats.maxZoom ?? max}；zip 已开始下载：${filename}`,
+          `最大层级 z${cache.stats.maxZoom ?? max}；` +
+          (savedPath ? `已保存到 ${savedPath}` : `zip 已开始下载：${filename}`),
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
