@@ -31,6 +31,14 @@
  */
 import proj4 from 'proj4';
 
+/** proj4 Converter 的结构化最小类型（@types/proj4 为 export= 风格，
+ * 命名空间类型访问在 composite/whitelisted-types 工程下不可移植，此处只依赖实际成员） */
+interface Proj4Converter {
+  forward: (coords: number[]) => number[];
+  inverse: (coords: number[]) => number[];
+}
+
+
 import type { XyzCrsTileMatrix, XyzLayerCrs } from './types';
 
 // ---------------------------------------------------------------------------
@@ -76,13 +84,13 @@ export type CrsResolveResult =
 // ---------------------------------------------------------------------------
 
 /** Converter 缓存（同一定义串全局复用，避免每瓦片重建） */
-const converterCache = new Map<string, proj4.Converter>();
+const converterCache = new Map<string, Proj4Converter>();
 
 /**
  * lon/lat(度) → 该 CRS 投影坐标 的 Converter（缓存）。
  * @throws proj4 对无法解析的定义在调用 forward/inverse 时才抛错——调用方需 try/catch。
  */
-export function lonLatToCrsConverter(def: string): proj4.Converter {
+export function lonLatToCrsConverter(def: string): Proj4Converter {
   const key = `fwd:${def}`;
   let converter = converterCache.get(key);
   if (!converter) {
@@ -93,7 +101,7 @@ export function lonLatToCrsConverter(def: string): proj4.Converter {
 }
 
 /** 投影坐标 → lon/lat(度) 的 Converter（缓存） */
-export function crsToLonLatConverter(def: string): proj4.Converter {
+export function crsToLonLatConverter(def: string): Proj4Converter {
   const key = `inv:${def}`;
   let converter = converterCache.get(key);
   if (!converter) {
@@ -120,7 +128,7 @@ export function validateProj4Def(
 ): string | undefined {
   const trimmed = def.trim();
   if (!trimmed) return 'proj4 定义为空：请选择注册表条目、直填 EPSG:CODE 或粘贴 proj4 定义字符串';
-  let converter: proj4.Converter;
+  let converter: Proj4Converter;
   try {
     converter = lonLatToCrsConverter(trimmed);
   } catch (err) {

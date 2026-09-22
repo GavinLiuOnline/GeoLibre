@@ -14,6 +14,14 @@
  * - Cesium 使用 WGS84，默认目标为 EPSG:4326；keepHeight 默认 true（第三维高度原样传递）
  */
 import proj4 from 'proj4';
+
+/** proj4 Converter 的结构化最小类型（@types/proj4 为 export= 风格，
+ * 命名空间类型访问在 composite/whitelisted-types 工程下不可移植，此处只依赖实际成员） */
+interface Proj4Converter {
+  forward: (coords: number[]) => number[];
+  inverse: (coords: number[]) => number[];
+}
+
 import type { GeoJSONData, GeoJSONPosition } from '@geolibre/gis-shared';
 
 import { mapGeoJSONCoordinates } from './geojson-utils';
@@ -122,7 +130,7 @@ export interface TransformOptions {
   keepHeight?: boolean;
 }
 
-function createConverter(fromDef: string, toDef: string): proj4.Converter {
+function createConverter(fromDef: string, toDef: string): Proj4Converter {
   const from = resolveCrs(fromDef);
   const to = resolveCrs(toDef);
   return proj4(from.def, to.def);
@@ -141,7 +149,7 @@ export function transformPosition(
 
 function convertPosition(
   position: GeoJSONPosition,
-  converter: proj4.Converter,
+  converter: Proj4Converter,
   options: TransformOptions,
 ): GeoJSONPosition {
   let source: GeoJSONPosition = position;

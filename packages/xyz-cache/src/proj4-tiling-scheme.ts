@@ -28,6 +28,14 @@ import { Cartesian2, Cartesian3, Ellipsoid, Rectangle } from 'cesium';
 import type { Cartographic, TilingScheme } from 'cesium';
 import proj4 from 'proj4';
 
+/** proj4 Converter 的结构化最小类型（@types/proj4 为 export= 风格，
+ * 命名空间类型访问在 composite/whitelisted-types 工程下不可移植，此处只依赖实际成员） */
+interface Proj4Converter {
+  forward: (coords: number[]) => number[];
+  inverse: (coords: number[]) => number[];
+}
+
+
 import {
   crsToLonLatConverter,
   lonLatToCrsConverter,
@@ -77,7 +85,7 @@ export function projectedBoundsOfCrs(
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  let converter: proj4.Converter;
+  let converter: Proj4Converter;
   try {
     converter = lonLatToCrsConverter(proj4Def);
   } catch {
@@ -201,7 +209,7 @@ export function projectedRectToLonLatBounds(
     [rect.minX, midY],
     [rect.maxX, midY],
   ];
-  let converter: proj4.Converter;
+  let converter: Proj4Converter;
   try {
     converter = crsToLonLatConverter(proj4Def);
   } catch {
@@ -348,8 +356,8 @@ export function crsTilesInRange(
 /** MapProjection 结构对象（Cesium 消费 project/unproject/ellipsoid） */
 class Proj4MapProjection {
   readonly ellipsoid = Ellipsoid.WGS84;
-  private readonly forwardConverter: proj4.Converter;
-  private readonly inverseConverter: proj4.Converter;
+  private readonly forwardConverter: Proj4Converter;
+  private readonly inverseConverter: Proj4Converter;
 
   constructor(private readonly proj4Def: string) {
     this.forwardConverter = lonLatToCrsConverter(proj4Def);
