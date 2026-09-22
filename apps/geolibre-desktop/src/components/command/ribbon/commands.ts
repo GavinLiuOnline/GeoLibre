@@ -239,8 +239,8 @@ const cacheGroups: RibbonGroup[] = [
     id: 'services',
     label: '服务',
     commands: [
-      { id: 'cache.services', tab: 'cache', group: 'services', label: '服务管理…', icon: 'server', primary: true, run: (c) => c.openServiceListDialog() , pending: true },
-      { id: 'cache.host-dir', tab: 'cache', group: 'services', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', run: (c) => c.openHostDirectoryDialog() , pending: true },
+      { id: 'cache.services', tab: 'cache', group: 'services', label: '服务管理…', icon: 'server', primary: true, hint: '连接 GIS 服务端：服务/场景/托管目录', run: (c) => c.openServiceListDialog() },
+      { id: 'cache.host-dir', tab: 'cache', group: 'services', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', hint: 'GB 级缓存免上传发布', run: (c) => c.openHostDirectoryDialog() },
     ],
   },
 ];

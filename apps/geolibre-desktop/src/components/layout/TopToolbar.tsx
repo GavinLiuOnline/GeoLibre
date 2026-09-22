@@ -11,6 +11,7 @@ import {
 } from "@geolibre/core";
 import { findCommand, type RibbonContext } from "../command/ribbon/commands";
 import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
+import { ServicesDialog } from "../panels/ServicesDialog";
 import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
@@ -1371,6 +1372,7 @@ export function TopToolbar({
   const [printLayoutOpen, setPrintLayoutOpen] = useState(false);
   const [fieldCollectionOpen, setFieldCollectionOpen] = useState(false);
   const [reprojectionOpen, setReprojectionOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
   // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
   // 完成后再打开生成对话框（bbox 随 prop 传入）。
@@ -2221,8 +2223,8 @@ export function TopToolbar({
         ribbonPending(key === "publish" ? "一键发布（Phase 3）" : key);
       },
       openBasemapDialog: () => onOpenBasemapExtract(),
-      openHostDirectoryDialog: () => ribbonPending("服务端托管（Phase 3）"),
-      openServiceListDialog: () => ribbonPending("服务管理（Phase 3）"),
+      openHostDirectoryDialog: () => setServicesOpen(true),
+      openServiceListDialog: () => setServicesOpen(true),
       openUrlImportDialog: () => setAddDataKind("xyz"),
       openSceneListDialog: () => ribbonPending("从服务端打开（Phase 3）"),
       openProjectPackage: (tab) => {
@@ -2476,6 +2478,7 @@ export function TopToolbar({
         onProjectCreated={resetRuntimeControlsForNewProject}
       />
       <ReprojectionDialog open={reprojectionOpen} onOpenChange={setReprojectionOpen} />
+      <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} />
       {cacheDialog ? (
         <GenerateCacheDialog
           open

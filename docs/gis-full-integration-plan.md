@@ -71,7 +71,7 @@ GeoLibre/
 2. **Dock 面板框架** ✅：`packages/core/src/dock/`（layout-model 纯函数 788 行原样移植 + Zustand `useDockStore` 并入 @geolibre/core，localStorage 持久化）+ `apps/geolibre-desktop/src/components/dock/DockPanel.tsx`（splitter 拖拽/标签组/浮动窗口 React 重写）+ 17 个单测；Ribbon「重置默认布局」已接真实动作。PR3 起填充真实面板内容并挂载
 3. **图层面板 + 属性面板 + 样式编辑器** ✅（PR3 采纳「不重复造」路线）：Dock 框架以可选覆盖层挂载（Ribbon 视图页「Dock 编辑器布局」切换，默认关闭、地图交互不受影响），图层页签承载 geolibre 既有 `LayerPanel` 全功能；属性/工具/查询/输出为占位，PR4/PR5 填充。样式编辑复用既有 style panel（不重建）
 4. **绘制与几何编辑** ✅（PR4）——按「不重复造」落地：绘制点/线/面复用既有 `FieldCollectionDialog`；顶点编辑复用既有图层几何编辑会话（选中图层 → 开始/保存/取消）；`drawGeometry`/`geojsonEdit` 纯逻辑移植至 `@geolibre/core`（`editing/`，29 用例）。全屏 Cesium 顶点手柄交互层（ScreenSpaceEventHandler）与拾取/框选随 Cesium 深度集成后续评估，避免与既有选择系统（按表达式/按位置）重复
-5. **缓存/配准/发布面板** ✅（PR5）——按「不重复造」落地：① 坐标重投影对话框（CRS 注册表 + proj4 transformGeoJSON，纯客户端，结果入新图层）；② XYZ 缓存生成对话框双模式（矢量渲染 generateXyzFromGeoJSON / 底图区域抓取 generateXyzFromRegion，zip 打包下载，进度条）；③ 3D Tiles 生成与一键发布待 Phase 3 sidecar / Phase 4 Tauri 落地；处理历史/输出面板已在 PR3 接真数据
+5. **缓存/配准/发布面板** ✅（PR5）——按「不重复造」落地：① 坐标重投影对话框（CRS 注册表 + proj4 transformGeoJSON，纯客户端，结果入新图层）；② XYZ 缓存生成对话框双模式（矢量渲染 generateXyzFromGeoJSON / 底图区域抓取 generateXyzFromRegion，zip 打包下载，进度条）；③ 服务管理/托管目录已接真服务端（GIS 服务管理对话框：连接 services/gis-server、服务注册表、托管本机瓦片目录免上传发布、场景列表，XYZ 托管 URL 可直接粘进「添加数据→XYZ URL」加载）；3D Tiles 生成与一键发布待后续（发布需工程→SceneDocument 转换器）；处理历史/输出面板已在 PR3 接真数据
 
 **验收**：原编辑器五大功能链路（导入 → 配准 → 编辑 → 轻量化 → 发布）在 geolibre-desktop 内全部可用；全部新 UI 字符串入 i18n catalog；Playwright e2e 各加一条冒烟。
 
