@@ -91,6 +91,36 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  # GIS 服务端（Node sidecar，Phase 3）：场景发布/资产/缓存目录托管/admin。
+  # 宿主端口 8090（8080 已被 geolibre-web 占用），容器内仍为 8080。
+  # 托管本机瓦片目录需配置 GIS_HOST_DIR_ROOTS 白名单（冒号分隔）。
+  geolibre-gis:
+    build:
+      context: .
+      dockerfile: services/gis-server/Dockerfile
+    image: geolibre-gis-server:local
+    ports:
+      - "${GEOLIBRE_GIS_PORT:-8090}:8080"
+    environment:
+      PORT: "8080"
+      DATA_DIR: /data
+      GIS_HOST_DIR_ROOTS: "${GEOLIBRE_GIS_HOST_ROOTS:-/data/hosted}"
+    volumes:
+      - geolibre-gis:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/api/scenes').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
   postgres:
     image: postgres:17-alpine
     environment:
@@ -109,6 +139,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  geolibre-gis:
   geolibre-projects:
   geolibre-collab:
   geolibre-postgres:

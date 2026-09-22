@@ -40,7 +40,9 @@
     "tauri:build:mas": "node scripts/tauri-build.mjs --mas",
     "msix:build": "pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/msix/build-msix.ps1",
     "portable:build": "pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/portable/build-portable.ps1",
-    "test:gis": "npm run test -w @geolibre/gis-server"
+    "test:gis": "npm run test -w @geolibre/gis-server",
+    "dev:gis": "npm run dev -w @geolibre/gis-server",
+    "start:gis": "npm run start -w @geolibre/gis-server"
   },
   "dependencies": {
     "patch-package": "^8.0.1"

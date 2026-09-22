@@ -77,8 +77,8 @@ GeoLibre/
 
 ### Phase 3 — Node GIS sidecar ✅
 - [x] `server/` → `services/gis-server/`；npm workspaces 加 `services/*`（构建 esbuild 单文件打包，内联 @geolibre/gis-shared；73 服务端用例全绿，/admin 与场景/服务 API 冒烟通过）
-- [ ] docker-compose 加 `gis-server` service（:8080，数据卷同 Python sidecar 风格）
-- [ ] `/admin` 管理台保留 ✅（public/admin.html 随包）；docs 增补部署章节
+- [x] docker-compose 加 `geolibre-gis` service（宿主 8090：web 已占 8080；容器内 8080，数据卷 geolibre-gis:/data，两阶段 Dockerfile——esbuild 单文件 + 零 node_modules runtime）
+- [x] `/admin` 管理台保留（public/admin.html 随包）；部署文档 docs/gis-server.md（本地运行/Docker/环境变量/托管白名单/发布链路）
 
 ### Phase 4 — Tauri 统一桌面（3-5 天）
 - [ ] xyz-cache 的 Tauri `CacheStorage` 实现（Rust command：目录扫描 / 流式读写瓦片）
