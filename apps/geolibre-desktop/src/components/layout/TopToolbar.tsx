@@ -1376,6 +1376,7 @@ export function TopToolbar({
   // 完成后再打开生成对话框（bbox 随 prop 传入）。
   const [regionDrawArmed, setRegionDrawArmed] = useState(false);
   const [regionBbox, setRegionBbox] = useState<[number, number, number, number] | null>(null);
+  const [regionHint, setRegionHint] = useState<string | null>(null);
   const [gpsTrackingOpen, setGpsTrackingOpen] = useState(false);
   const [recordTourOpen, setRecordTourOpen] = useState(false);
   const [recordVideoOpen, setRecordVideoOpen] = useState(false);
@@ -2305,7 +2306,11 @@ export function TopToolbar({
     [ribbonCtx],
   );
 
-  // 框选区域缓存：拖拽完成后打开生成对话框
+  // 框选区域缓存：拖拽完成后打开生成对话框。
+  // 可见矩形由 showExtent 绘制（drawExtent 只捕指针不画图），在 onChange
+  // 回调内命令式刷新——与底图提取面板等效，不依赖 effect 重渲染时序；
+  // 生成对话框打开期间保持显示，对话框关闭时清除。
+  const regionPreviewDisposeRef = useRef<(() => void) | null>(null);
   useEffect(() => {
     if (!regionDrawArmed) return;
     const engine = mapControllerRef.current;
@@ -2313,32 +2318,52 @@ export function TopToolbar({
       setRegionDrawArmed(false);
       return;
     }
-    return engine.drawExtent({
-      onChange: (extent) => setRegionBbox(extent),
-      onDone: () => {
+    const disposePreview = () => {
+      regionPreviewDisposeRef.current?.();
+      regionPreviewDisposeRef.current = null;
+    };
+    const lifecycle = engine.drawExtent({
+      onChange: (extent) => {
+        setRegionBbox(extent);
+        setRegionHint(
+          `框选中：W ${extent[0].toFixed(3)} / S ${extent[1].toFixed(3)} / E ${extent[2].toFixed(3)} / N ${extent[3].toFixed(3)}`,
+        );
+        disposePreview();
+        regionPreviewDisposeRef.current = engine.showExtent(extent);
+      },
+      onDone: (extent) => {
         setRegionDrawArmed(false);
+        setRegionBbox(extent);
+        disposePreview();
+        regionPreviewDisposeRef.current = engine.showExtent(extent);
         setCacheDialog("region");
       },
-      onCancel: () => setRegionDrawArmed(false),
+      onCancel: () => {
+        setRegionDrawArmed(false);
+        setRegionHint(null);
+        disposePreview();
+      },
     });
+    return () => {
+      lifecycle?.();
+      disposePreview();
+    };
   }, [regionDrawArmed, mapControllerRef, mapReadyGeneration]);
 
-  // 框选范围预览（drawExtent 只捕指针不画图；可见矩形由 showExtent 绘制，
-  // 与底图提取面板同机制）：拖拽中与生成对话框打开期间保持显示
+  // 生成对话框关闭 → 清除预览矩形
   useEffect(() => {
-    if (!regionBbox || !(regionDrawArmed || cacheDialog === "region")) return;
-    const engine = mapControllerRef.current;
-    if (!engine) return;
-    return engine.showExtent(regionBbox);
-  }, [regionBbox, regionDrawArmed, cacheDialog, mapControllerRef, mapReadyGeneration]);
+    if (cacheDialog === "region") return;
+    regionPreviewDisposeRef.current?.();
+    regionPreviewDisposeRef.current = null;
+  }, [cacheDialog]);
   return (
     <>
-      {ribbonNotice ? (
+      {ribbonNotice || regionHint ? (
         <div
           role="status"
           className="pointer-events-none fixed inset-x-0 top-12 z-[80] mx-auto w-fit rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md"
         >
-          {ribbonNotice}
+          {regionHint ?? ribbonNotice}
         </div>
       ) : null}
       <header
