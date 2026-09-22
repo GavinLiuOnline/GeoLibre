@@ -108,3 +108,49 @@ export function hostGisDirectory(
     body: JSON.stringify({ dir, kind, title }),
   });
 }
+
+/** 发布结果（POST /api/scenes/publish-package） */
+export interface PublishPackageResult {
+  manifest?: { slug?: string; title?: string; [key: string]: unknown };
+  hostedSceneUrl?: string;
+  hostedScene?: { id?: string; [key: string]: unknown };
+  [key: string]: unknown;
+}
+
+/**
+ * 一键发布：场景文档（图层内嵌 GeoJSON + XYZ URL 引用）上传为场景包。
+ * multipart（scene + 空 bundleMeta），浏览器自动带 multipart boundary。
+ */
+export async function publishGisScene(
+  scene: Record<string, unknown>,
+): Promise<PublishPackageResult> {
+  const base = getGisServerUrl();
+  const form = new FormData();
+  form.append("scene", JSON.stringify(scene));
+  form.append("bundleMeta", "[]");
+  let response: Response;
+  try {
+    response = await fetch(`${base}/api/scenes/publish-package`, { method: "POST", body: form });
+  } catch (error) {
+    throw new GisServerRequestError(
+      0,
+      `无法连接 GIS 服务端（${base}）：${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (!response.ok) {
+    let detail = `${response.status} ${response.statusText}`;
+    try {
+      const body = (await response.json()) as { error?: string; message?: string };
+      detail = body.error ?? body.message ?? detail;
+    } catch {
+      /* 非 JSON 错误体 */
+    }
+    throw new GisServerRequestError(response.status, detail);
+  }
+  const result = (await response.json()) as PublishPackageResult;
+  // 服务端返回相对路径（/published/<slug>/scene.json）→ 拼成绝对 URL 便于展示/分享
+  if (typeof result.hostedSceneUrl === "string" && result.hostedSceneUrl.startsWith("/")) {
+    result.hostedSceneUrl = `${base}${result.hostedSceneUrl}`;
+  }
+  return result;
+}

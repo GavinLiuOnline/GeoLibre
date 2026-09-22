@@ -251,7 +251,7 @@ const publishGroups: RibbonGroup[] = [
     id: 'publish',
     label: '发布',
     commands: [
-      { id: 'publish.oneclick', tab: 'publish', group: 'publish', label: '一键发布…', icon: 'send', primary: true, hint: '场景 + 缓存 + 资产打包上传', run: (c) => c.openDialog('publish') , pending: true },
+      { id: 'publish.oneclick', tab: 'publish', group: 'publish', label: '一键发布…', icon: 'send', primary: true, hint: '当前工程发布为服务端场景包', run: (c) => c.openDialog('publish') },
     ],
   },
 ];

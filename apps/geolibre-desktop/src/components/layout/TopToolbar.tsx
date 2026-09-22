@@ -12,6 +12,7 @@ import {
 import { findCommand, type RibbonContext } from "../command/ribbon/commands";
 import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
 import { ServicesDialog } from "../panels/ServicesDialog";
+import { PublishDialog } from "../panels/PublishDialog";
 import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
@@ -1373,6 +1374,7 @@ export function TopToolbar({
   const [fieldCollectionOpen, setFieldCollectionOpen] = useState(false);
   const [reprojectionOpen, setReprojectionOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
   // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
   // 完成后再打开生成对话框（bbox 随 prop 传入）。
@@ -2220,7 +2222,11 @@ export function TopToolbar({
           ribbonPending("设置面板（工具栏内已有入口）");
           return;
         }
-        ribbonPending(key === "publish" ? "一键发布（Phase 3）" : key);
+        if (key === "publish") {
+          setPublishOpen(true);
+          return;
+        }
+        ribbonPending(key);
       },
       openBasemapDialog: () => onOpenBasemapExtract(),
       openHostDirectoryDialog: () => setServicesOpen(true),
@@ -2479,6 +2485,7 @@ export function TopToolbar({
       />
       <ReprojectionDialog open={reprojectionOpen} onOpenChange={setReprojectionOpen} />
       <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} />
+      <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
       {cacheDialog ? (
         <GenerateCacheDialog
           open
