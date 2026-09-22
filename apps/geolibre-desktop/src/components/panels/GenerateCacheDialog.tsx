@@ -43,9 +43,11 @@ interface GenerateCacheDialogProps {
   onOpenChange: (open: boolean) => void;
   /** 'vector'：矢量渲染生成；'region'：底图源按范围抓取 */
   mode: "vector" | "region";
+  /** 地图上框选的范围 [W,S,E,N]（region 模式优先于图层范围） */
+  bbox?: [number, number, number, number];
 }
 
-export function GenerateCacheDialog({ open, onOpenChange, mode }: GenerateCacheDialogProps) {
+export function GenerateCacheDialog({ open, onOpenChange, mode, bbox }: GenerateCacheDialogProps) {
   const layers = useAppStore((s) => s.layers);
   const vectorLayers = useMemo(() => getVectorLayers(layers), [layers]);
   const [layerId, setLayerId] = useState<string>("");
@@ -68,13 +70,13 @@ export function GenerateCacheDialog({ open, onOpenChange, mode }: GenerateCacheD
     setDone(null);
     try {
       const onProgress = (ratio: number) => setProgress(ratio);
-      const bbox = geojsonExtent(layer.geojson as unknown as GeoJSONData);
-      if (!bbox) throw new Error("无法确定图层地理范围（数据无有效坐标）");
+      const resolved = bbox ?? geojsonExtent(layer.geojson as unknown as GeoJSONData);
+      if (!resolved) throw new Error("无法确定生成范围：请先在地图上框选，或选择含几何的图层");
       const cache =
         mode === "vector"
           ? await generateXyzFromGeoJSON(layer.geojson as unknown as GeoJSONData, { minZoom: min, maxZoom: max, onProgress })
           : await generateXyzFromRegion({
-              bbox,
+              bbox: resolved,
               minZoom: min,
               maxZoom: max,
               source: "basemap",
@@ -156,6 +158,11 @@ export function GenerateCacheDialog({ open, onOpenChange, mode }: GenerateCacheD
               />
             </div>
           </div>
+          {mode === "region" && bbox ? (
+            <p className="rounded border border-border bg-muted/40 px-2 py-1 text-xs text-foreground">
+              已框选范围：W {bbox[0].toFixed(4)} / S {bbox[1].toFixed(4)} / E {bbox[2].toFixed(4)} / N {bbox[3].toFixed(4)}
+            </p>
+          ) : null}
           {mode === "region" ? (
             <>
               <div className="grid gap-1.5">

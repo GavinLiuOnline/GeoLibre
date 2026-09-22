@@ -1372,6 +1372,10 @@ export function TopToolbar({
   const [fieldCollectionOpen, setFieldCollectionOpen] = useState(false);
   const [reprojectionOpen, setReprojectionOpen] = useState(false);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
+  // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
+  // 完成后再打开生成对话框（bbox 随 prop 传入）。
+  const [regionDrawArmed, setRegionDrawArmed] = useState(false);
+  const [regionBbox, setRegionBbox] = useState<[number, number, number, number] | null>(null);
   const [gpsTrackingOpen, setGpsTrackingOpen] = useState(false);
   const [recordTourOpen, setRecordTourOpen] = useState(false);
   const [recordVideoOpen, setRecordVideoOpen] = useState(false);
@@ -2231,7 +2235,11 @@ export function TopToolbar({
         }
         setCacheDialog("2d");
       },
-      openRegionCache: () => setCacheDialog("region"),
+      openRegionCache: () => {
+        setRegionBbox(null);
+        setRegionDrawArmed(true);
+        ribbonPending("在地图上拖拽框选缓存范围（再次点击取消）");
+      },
       openReprojectionDialog: () => setReprojectionOpen(true),
       openAboutDialog: () => setAboutOpen(true),
       pickAndOpenScene: () => ribbonPending("从服务端打开（Phase 3）"),
@@ -2296,6 +2304,24 @@ export function TopToolbar({
     },
     [ribbonCtx],
   );
+
+  // 框选区域缓存：拖拽完成后打开生成对话框
+  useEffect(() => {
+    if (!regionDrawArmed) return;
+    const engine = mapControllerRef.current;
+    if (!engine) {
+      setRegionDrawArmed(false);
+      return;
+    }
+    return engine.drawExtent({
+      onChange: (extent) => setRegionBbox(extent),
+      onDone: () => {
+        setRegionDrawArmed(false);
+        setCacheDialog("region");
+      },
+      onCancel: () => setRegionDrawArmed(false),
+    });
+  }, [regionDrawArmed, mapControllerRef, mapReadyGeneration]);
   return (
     <>
       {ribbonNotice ? (
@@ -2422,6 +2448,7 @@ export function TopToolbar({
             if (!o) setCacheDialog(null);
           }}
           mode={cacheDialog === "region" ? "region" : "vector"}
+          bbox={regionBbox ?? undefined}
         />
       ) : null}
       {!viewer && isMenuVisible(uiProfile, "addData") && deploymentCapabilities.has("data:add") && (
