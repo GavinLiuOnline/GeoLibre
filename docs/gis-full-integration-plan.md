@@ -75,10 +75,10 @@ GeoLibre/
 
 **验收**：原编辑器五大功能链路（导入 → 配准 → 编辑 → 轻量化 → 发布）在 geolibre-desktop 内全部可用；全部新 UI 字符串入 i18n catalog；Playwright e2e 各加一条冒烟。
 
-### Phase 3 — Node GIS sidecar（1-2 天）
-- [ ] `server/` → `services/gis-server/`；npm workspaces 加 `services/*`
+### Phase 3 — Node GIS sidecar ✅
+- [x] `server/` → `services/gis-server/`；npm workspaces 加 `services/*`（构建 esbuild 单文件打包，内联 @geolibre/gis-shared；73 服务端用例全绿，/admin 与场景/服务 API 冒烟通过）
 - [ ] docker-compose 加 `gis-server` service（:8080，数据卷同 Python sidecar 风格）
-- [ ] `/admin` 管理台保留；docs 增补部署章节
+- [ ] `/admin` 管理台保留 ✅（public/admin.html 随包）；docs 增补部署章节
 
 ### Phase 4 — Tauri 统一桌面（3-5 天）
 - [ ] xyz-cache 的 Tauri `CacheStorage` 实现（Rust command：目录扫描 / 流式读写瓦片）

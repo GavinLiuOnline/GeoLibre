@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D Tiles 服务预览</title>
+<link href="https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+<script>
+  // 必须在 Cesium.js 之前指定静态资源基址（CDN）
+  window.CESIUM_BASE_URL = 'https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/';
+</script>
+<script src="https://cdn.jsdelivr.net/npm/cesium@1.120.0/Build/Cesium/Cesium.js"></script>
+<style>
+  html, body { height: 100%; margin: 0; }
+  #cesiumContainer { width: 100%; height: 100%; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(15, 23, 42, .82); color: #e8ecf5; font: 14px/1.7 "Microsoft YaHei", system-ui, sans-serif;
+    z-index: 10; text-align: center; padding: 24px;
+  }
+  .overlay .box { max-width: 560px; }
+  .overlay h2 { margin: 0 0 10px; font-size: 16px; }
+  .overlay code { font-family: ui-monospace, Consolas, monospace; color: #9ec1ff; word-break: break-all; }
+  .overlay a { color: #7fb8ff; }
+  .overlay.err { background: rgba(15, 23, 42, .9); }
+  .spin { width: 26px; height: 26px; margin: 0 auto 12px; border: 3px solid rgba(255,255,255,.25); border-top-color: #4f8cff; border-radius: 50%; animation: s 1s linear infinite; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  .topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 9; display: flex; gap: 10px; align-items: center;
+    padding: 8px 14px; background: rgba(31, 45, 61, .92); color: #e8ecf5; font: 13px/1.5 "Microsoft YaHei", system-ui, sans-serif; }
+  .topbar .slug { font-family: ui-monospace, Consolas, monospace; color: #9ec1ff; }
+  .topbar a { color: #7fb8ff; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <b>3D Tiles 服务预览</b>
+  <span class="slug" id="slugText"></span>
+  <a id="tilesetLink" href="#" target="_blank">tileset.json</a>
+  <span style="flex:1"></span>
+  <a href="/admin">返回管理控制台</a>
+</div>
+<div id="cesiumContainer"></div>
+<div class="overlay" id="overlay">
+  <div class="box">
+    <div class="spin"></div>
+    <h2>正在加载 3D Tiles 服务…</h2>
+    <div id="overlayMsg">等待 Cesium 引擎与 tileset.json 就绪</div>
+  </div>
+</div>
+<script>
+'use strict';
+// 从路径取 slug：/preview/3dtiles/<slug>
+var slug = decodeURIComponent(location.pathname.replace(/\/+$/, '').split('/').pop() || '');
+document.getElementById('slugText').textContent = slug;
+var tilesetUrl = '/published/' + encodeURIComponent(slug) + '/tileset.json';
+document.getElementById('tilesetLink').href = tilesetUrl;
+
+function showError(title, detail) {
+  var overlay = document.getElementById('overlay');
+  overlay.className = 'overlay err';
+  overlay.innerHTML =
+    '<div class="box"><h2>' + title + '</h2><div>' + detail +
+    '</div><p><a href="' + tilesetUrl + '" target="_blank">直接查看 tileset.json</a> · ' +
+    '<a href="/admin">返回管理控制台</a></p></div>';
+}
+
+(function boot() {
+  if (typeof Cesium === 'undefined') {
+    showError('Cesium 引擎加载失败', '内置预览页通过 CDN 加载 Cesium，请检查服务器外网连通性（服务本身不受影响）。');
+    return;
+  }
+  var viewerOptions = {
+    baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
+    navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
+    infoBox: false, selectionIndicator: false
+  };
+  var viewer;
+  try {
+    // Cesium ≥1.104：baseLayer:false 关闭默认 Ion 影像，避免需要 access token
+    viewer = new Cesium.Viewer('cesiumContainer', Object.assign({ baseLayer: false }, viewerOptions));
+  } catch (e) {
+    viewer = new Cesium.Viewer('cesiumContainer', Object.assign({ imageryProvider: false }, viewerOptions));
+  }
+
+  var load = Cesium.Cesium3DTileset && Cesium.Cesium3DTileset.fromUrl
+    ? Cesium.Cesium3DTileset.fromUrl(tilesetUrl)
+    : Promise.resolve(new Cesium.Cesium3DTileset({ url: tilesetUrl }));
+
+  load.then(function (tileset) {
+    viewer.scene.primitives.add(tileset);
+    return viewer.zoomTo(tileset);
+  }).then(function () {
+    var overlay = document.getElementById('overlay');
+    overlay.style.display = 'none';
+  }).catch(function (err) {
+    showError('3D Tiles 加载失败', '<code>' + tilesetUrl + '</code><br/>' + String(err && err.message || err));
+  });
+})();
+</script>
+</body>
+</html>

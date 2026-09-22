@@ -6,7 +6,8 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "workers/*"
+    "workers/*",
+    "services/*"
   ],
   "scripts": {
     "postinstall": "node scripts/apply-dependency-patches.mjs",
@@ -38,7 +39,8 @@
     "tauri:build:native-duckdb": "node scripts/tauri-build.mjs --native-duckdb",
     "tauri:build:mas": "node scripts/tauri-build.mjs --mas",
     "msix:build": "pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/msix/build-msix.ps1",
-    "portable:build": "pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/portable/build-portable.ps1"
+    "portable:build": "pwsh -NoProfile -ExecutionPolicy Bypass -File packaging/portable/build-portable.ps1",
+    "test:gis": "npm run test -w @geolibre/gis-server"
   },
   "dependencies": {
     "patch-package": "^8.0.1"
