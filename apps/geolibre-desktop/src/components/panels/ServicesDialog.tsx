@@ -9,6 +9,7 @@
   - 场景列表（服务端已有场景一览）。
 */
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   DEFAULT_GIS_SERVER_URL,
@@ -41,6 +42,7 @@ type ConnState =
   | { phase: "error"; message: string };
 
 export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const [serverUrl, setServerUrlInput] = useState(DEFAULT_GIS_SERVER_URL);
   const [conn, setConn] = useState<ConnState>({ phase: "idle" });
   const [services, setServices] = useState<GisServiceEntry[] | null>(null);
@@ -103,15 +105,13 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl" data-testid="gis-services-dialog">
         <DialogHeader>
-          <DialogTitle>GIS 服务管理</DialogTitle>
-          <DialogDescription>
-            连接 GIS 服务端（Node sidecar），管理已发布/托管的服务与场景；本地缓存目录可免上传直接对外发布。
-          </DialogDescription>
+          <DialogTitle>{t("gisServer.servicesTitle")}</DialogTitle>
+          <DialogDescription>{t("gisServer.servicesDescription")}</DialogDescription>
         </DialogHeader>
         <div className="grid max-h-[70vh] gap-4 overflow-auto py-2">
           {/* 服务器地址 */}
           <div className="grid gap-1.5">
-            <Label htmlFor="gis-server-url">服务端地址</Label>
+            <Label htmlFor="gis-server-url">{t("gisServer.serverUrl")}</Label>
             <div className="flex gap-2">
               <Input
                 id="gis-server-url"
@@ -120,12 +120,12 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                 placeholder={DEFAULT_GIS_SERVER_URL}
               />
               <Button variant="secondary" onClick={applyUrl} disabled={busy}>
-                {busy ? "连接中…" : "连接"}
+                {busy ? t("gisServer.connecting") : t("gisServer.connect")}
               </Button>
             </div>
             {conn.phase === "ok" ? (
               <p className="text-xs text-emerald-600">
-                已连接：{services?.length ?? 0} 个服务 / {scenes?.length ?? 0} 个场景
+                {t("gisServer.connected", { services: services?.length ?? 0, scenes: scenes?.length ?? 0 })}
               </p>
             ) : null}
             {conn.phase === "error" ? <p className="text-xs text-red-600">{conn.message}</p> : null}
@@ -133,43 +133,50 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
           {/* 托管本地目录 */}
           <div className="grid gap-1.5 rounded-md border border-border p-3">
-            <Label htmlFor="gis-host-dir">托管本机瓦片目录（免上传，服务端所在机器的绝对路径）</Label>
+            <Label htmlFor="gis-host-dir">{t("gisServer.hostDirLabel")}</Label>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <Input
                 id="gis-host-dir"
                 value={hostDir}
                 onChange={(e) => setHostDir(e.target.value)}
-                placeholder="/data/xyz-cache-beijing"
+                placeholder={t("gisServer.hostDirPlaceholder")}
               />
               <Select
                 className="w-28"
                 value={hostKind}
                 onChange={(e) => setHostKind(e.target.value === "3dtiles" ? "3dtiles" : "xyz")}
               >
-                <option value="xyz">XYZ 瓦片</option>
-                <option value="3dtiles">3D Tiles</option>
+                <option value="xyz">{t("gisServer.kindXyz")}</option>
+                <option value="3dtiles">{t("gisServer.kind3dtiles")}</option>
               </Select>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <Input
                 value={hostTitle}
                 onChange={(e) => setHostTitle(e.target.value)}
-                placeholder="服务标题（可选）"
+                placeholder={t("gisServer.hostTitlePlaceholder")}
               />
               <Button onClick={() => void runHost()} disabled={hostBusy || !hostDir.trim()}>
-                {hostBusy ? "托管中…" : "托管"}
+                {hostBusy ? t("gisServer.hosting") : t("gisServer.host")}
               </Button>
             </div>
             {hostResult ? (
               <div className="rounded bg-muted/40 px-2 py-1.5 text-xs">
                 <p className="text-emerald-600">
-                  已托管「{String(hostResult.entry.title ?? hostResult.entry.slug)}」
-                  {hostResult.scan?.fileCount != null ? `（${hostResult.scan.fileCount} 个文件）` : ""}
+                  {hostResult.scan?.fileCount != null
+                    ? t("gisServer.hostedOk", {
+                        title: String(hostResult.entry.title ?? hostResult.entry.slug),
+                        count: hostResult.scan.fileCount,
+                      })
+                    : t("gisServer.hostedOkNoCount", {
+                        title: String(hostResult.entry.title ?? hostResult.entry.slug),
+                      })}
                 </p>
                 {hostResult.access?.url ? (
                   <p className="mt-1 break-all text-muted-foreground">
-                    访问：{hostResult.access.url}
-                    {hostResult.entry.hostKind === "xyz" ? "/{z}/{x}/{y}.png" : ""}
+                    {t("gisServer.accessLabel", {
+                      url: `${hostResult.access.url}${hostResult.entry.hostKind === "xyz" ? "/{z}/{x}/{y}.png" : ""}`,
+                    })}
                     <button
                       type="button"
                       className="ms-2 text-primary underline"
@@ -177,10 +184,10 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                         `${hostResult.access?.url ?? ""}${hostResult.entry.hostKind === "xyz" ? "/{z}/{x}/{y}.png" : ""}`,
                       )}
                     >
-                      复制
+                      {t("gisServer.copy")}
                     </button>
                     {hostResult.entry.hostKind === "xyz" ? (
-                      <span className="ms-1 text-muted-foreground">（可粘贴到「添加数据 → XYZ URL」直接加载）</span>
+                      <span className="ms-1 text-muted-foreground">{t("gisServer.copyXyzHint")}</span>
                     ) : null}
                   </p>
                 ) : null}
@@ -190,7 +197,7 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
 
           {/* 服务列表 */}
           <div className="grid gap-1.5">
-            <Label>服务注册表</Label>
+            <Label>{t("gisServer.registryLabel")}</Label>
             {services && services.length > 0 ? (
               <ul className="divide-y divide-border rounded-md border border-border text-xs">
                 {services.map((entry) => (
@@ -204,21 +211,21 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
                       className="ms-auto shrink-0 text-primary underline"
                       onClick={() => void navigator.clipboard.writeText(String(entry.url ?? entry.slug))}
                     >
-                      复制 URL
+                      {t("gisServer.copyUrl")}
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {services ? "暂无已注册服务；先在上方托管目录或发布数据" : "连接后显示"}
+                {services ? t("gisServer.registryEmpty") : t("gisServer.registryPending")}
               </p>
             )}
           </div>
 
           {/* 场景列表 */}
           <div className="grid gap-1.5">
-            <Label>服务端场景</Label>
+            <Label>{t("gisServer.scenesLabel")}</Label>
             {scenes && scenes.length > 0 ? (
               <ul className="divide-y divide-border rounded-md border border-border text-xs">
                 {scenes.map((scene, index) => (
@@ -234,7 +241,7 @@ export function ServicesDialog({ open, onOpenChange }: { open: boolean; onOpenCh
               </ul>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {scenes ? "服务端暂无场景；发布后在此查看" : "连接后显示"}
+                {scenes ? t("gisServer.scenesEmpty") : t("gisServer.scenesPending")}
               </p>
             )}
           </div>

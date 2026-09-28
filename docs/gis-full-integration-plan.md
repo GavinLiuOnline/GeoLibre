@@ -90,6 +90,10 @@ GeoLibre/
 - [ ] 旧 Electron 桌面从 CI/文档移除；gis-full 归档生效
 - [ ] GeoLibre README / docs / mkdocs nav 增补「GIS 编辑器」章节
 
+### i18n 收口（进行中）
+- [x] 本轮新增对话框（GIS 服务管理 / 一键发布）已 t() 化：`gisServer.*` 命名空间 41 键入 en.json（英文真源）+ zh.json（中文全量）；跳过原因走「存键、渲染处解析」模式（ParseKeys 类型化）；i18n-catalogs 测试 40 用例全绿
+- [ ] 余下 gis-full 移植面对话框（ReprojectionDialog / GenerateCacheDialog / commands.ts 注册表标签 / RibbonSection 小节标题）仍为中文直排，按「未翻译字符串回退英文」的仓库增量策略后续分批迁移
+
 ## 3. 风险与对策
 
 | 风险 | 等级 | 对策 |

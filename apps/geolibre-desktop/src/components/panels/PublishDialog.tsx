@@ -9,6 +9,8 @@
   发布结果返回 hostedSceneUrl（服务端托管的 scene.json）。
 */
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
 
 import { useAppStore } from "@geolibre/core";
 import {
@@ -78,7 +80,8 @@ export function buildSceneDocument(
             style: { opacity: layer.opacity, visibility: layer.visible },
           };
         }
-        skipped.push({ name: layer.name, type: layer.type, reason: "未找到数据 URL" });
+        // reason 存目录键（模块作用域无 t()），渲染处解析
+        skipped.push({ name: layer.name, type: layer.type, reason: "gisServer.skipNoUrl" });
         return null;
       }
       skipped.push({ name: layer.name, type: layer.type, reason: "该类型暂不支持发布" });
@@ -128,6 +131,7 @@ export function buildSceneDocument(
 }
 
 export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const projectName = useAppStore((s) => s.projectName);
   const mapView = useAppStore((s) => s.mapView);
   const basemapStyleUrl = useAppStore((s) => s.basemapStyleUrl);
@@ -138,7 +142,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [result, setResult] = useState<PublishPackageResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveName = name.trim() || projectName || "未命名场景";
+  const effectiveName = name.trim() || projectName || t("gisServer.unnamedScene");
   const analysis = useMemo(
     () => buildSceneDocument({ name: effectiveName, mapView, basemapStyleUrl, layers }),
     [effectiveName, mapView, basemapStyleUrl, layers],
@@ -163,39 +167,41 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg" data-testid="gis-publish-dialog">
         <DialogHeader>
-          <DialogTitle>一键发布</DialogTitle>
-          <DialogDescription>
-            将当前工程发布到 GIS 服务端：geojson 图层内嵌，瓦片/WMS 图层按 URL 引用；服务端返回可分享的场景地址。
-          </DialogDescription>
+          <DialogTitle>{t("gisServer.publishTitle")}</DialogTitle>
+          <DialogDescription>{t("gisServer.publishDescription")}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="publish-name">场景名</Label>
+            <Label htmlFor="publish-name">{t("gisServer.sceneName")}</Label>
             <Input
               id="publish-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={projectName || "未命名场景"}
+              placeholder={projectName || t("gisServer.unnamedScene")}
             />
           </div>
 
           <div className="grid gap-1.5 rounded-md border border-border p-3 text-xs">
             <p>
-              将发布 <b>{analysis.publishable.length}</b> 个图层
-              {analysis.publishable.some((l) => l.mode === "inline") ? "（geojson 内嵌）" : ""}
-              {analysis.publishable.some((l) => l.mode === "url") ? "（含 URL 引用）" : ""}
+              {t("gisServer.willPublish", { count: analysis.publishable.length })}
+              {analysis.publishable.some((l) => l.mode === "inline") ? t("gisServer.inlineSuffix") : ""}
+              {analysis.publishable.some((l) => l.mode === "url") ? t("gisServer.urlSuffix") : ""}
             </p>
             {analysis.skipped.length > 0 ? (
               <p className="text-muted-foreground">
-                跳过 {analysis.skipped.length} 个：
-                {analysis.skipped.map((s) => `${s.name}（${s.reason}）`).join("、")}
+                {t("gisServer.skippedCount", {
+                  count: analysis.skipped.length,
+                  items: analysis.skipped
+                    .map((s) => `${s.name}（${t(s.reason as ParseKeys)}）`)
+                    .join("、"),
+                })}
               </p>
             ) : null}
           </div>
 
           {result?.hostedSceneUrl ? (
             <div className="rounded-md border border-border bg-muted/40 p-3 text-xs">
-              <p className="text-emerald-600">发布成功</p>
+              <p className="text-emerald-600">{t("gisServer.publishedOk")}</p>
               <p className="mt-1 break-all text-foreground">{result.hostedSceneUrl}</p>
               <div className="mt-2 flex gap-2">
                 <Button
@@ -203,11 +209,11 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                   variant="secondary"
                   onClick={() => void navigator.clipboard.writeText(result.hostedSceneUrl ?? "")}
                 >
-                  复制地址
+                  {t("gisServer.copyAddress")}
                 </Button>
                 <a href={result.hostedSceneUrl} target="_blank" rel="noreferrer">
                   <Button size="sm" variant="ghost">
-                    打开
+                    {t("gisServer.open")}
                   </Button>
                 </a>
               </div>
@@ -217,7 +223,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           {error ? <p className="text-xs text-red-600">{error}</p> : null}
 
           <Button onClick={() => void runPublish()} disabled={busy || analysis.publishable.length === 0}>
-            {busy ? "发布中…" : "发布到 GIS 服务端"}
+            {busy ? t("gisServer.publishing") : t("gisServer.publishButton")}
           </Button>
         </div>
       </DialogContent>
