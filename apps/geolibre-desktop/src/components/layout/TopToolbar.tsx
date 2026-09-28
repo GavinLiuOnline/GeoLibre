@@ -123,6 +123,7 @@ import type { ThemeMode } from "../../hooks/useThemeMode";
 import { isMobile } from "../../lib/is-mobile";
 import { isTauri } from "../../lib/tauri-io";
 import { scanXyzDir, xyzDirTileTemplate } from "../../lib/xyz-dir-protocol";
+import { local3dTilesUrl } from "../../lib/local-3dtiles";
 import { DEFAULT_LAYER_STYLE } from "@geolibre/core";
 import { isMaptoolkitBasemapActive } from "../../lib/maptoolkit-basemap";
 import { useDesktopSettingsStore } from "../../hooks/useDesktopSettings";
@@ -2290,7 +2291,34 @@ export function TopToolbar({
       flipTheme: () => onToggleThemeMode(),
       pickLocalCacheDir: (kind) => {
         if (kind === "3dtiles") {
-          ribbonPending("3D Tiles 本地目录导入（需要 Cesium 本地协议，后续接入）");
+          void (async () => {
+            try {
+              if (!isTauri()) {
+                showNotice("引用本机 3D Tiles 目录需要 GeoLibre 桌面端（浏览器请使用服务端托管）。");
+                return;
+              }
+              const { open } = await import("@tauri-apps/plugin-dialog");
+              const selected = await open({ directory: true, multiple: false });
+              if (typeof selected !== "string") return;
+              // 校验目录根含 tileset.json
+              const { readLocalFileBytes } = await import("../../lib/tauri-io");
+              await readLocalFileBytes(`${selected.replace(/[/\\]+$/, "")}/tileset.json`);
+              const name = selected.split(/[\\/]/).filter(Boolean).pop() || "本机 3D Tiles";
+              useAppStore.getState().addLayer({
+                id: `3dtiles-dir-${Date.now()}`,
+                name,
+                type: "3d-tiles",
+                source: { type: "3d-tiles", sourceId: `3dtiles-dir-${Date.now()}`, url: local3dTilesUrl(selected) },
+                visible: true,
+                opacity: 1,
+                style: structuredClone(DEFAULT_LAYER_STYLE),
+                metadata: { importedFrom: "local-3dtiles-dir" },
+              });
+              showNotice(`已加载本机 3D Tiles：${name}（在全球视图中渲染）`);
+            } catch (e) {
+              showNotice(`加载本机 3D Tiles 失败：${e instanceof Error ? e.message : String(e)}`, 6000);
+            }
+          })();
           return;
         }
         void (async () => {
