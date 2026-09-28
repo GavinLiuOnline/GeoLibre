@@ -83,7 +83,7 @@ GeoLibre/
 ### Phase 4 — Tauri 统一桌面（3-5 天）
 - [ ] xyz-cache 的 Tauri `CacheStorage` 实现（Rust command：目录扫描 / 流式读写瓦片）
 - [ ] 文件对话框 / 保存走 Tauri plugin-fs（替代 Electron IPC 的 show-save-dialog）
-- [ ] release workflow 改 `tauri-build`：产物 AppImage / deb / NSIS/MSIX（Tauri 原生支持，产物面不缩水）
+- [x] release workflow 已是 `tauri-apps/tauri-action`（release.yml）+ android/ios/mas-store/msix-store 专用工作流——本仓无 Electron CI 可改，目标态就位（Phase 4 实际工作 = 补齐桌面能力：保存对话框/xyzdir 协议/geolibre-local 3D Tiles）
 - [ ] 删除 Electron 相关（electron-builder.yml、xyzDisk Electron 侧、打包 CI）
 
 ### 收尾
