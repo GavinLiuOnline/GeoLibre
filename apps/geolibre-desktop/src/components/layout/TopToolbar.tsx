@@ -122,6 +122,8 @@ import { useVectorTileGeometryBackfill } from "../../hooks/useVectorTileGeometry
 import type { ThemeMode } from "../../hooks/useThemeMode";
 import { isMobile } from "../../lib/is-mobile";
 import { isTauri } from "../../lib/tauri-io";
+import { scanXyzDir, xyzDirTileTemplate } from "../../lib/xyz-dir-protocol";
+import { DEFAULT_LAYER_STYLE } from "@geolibre/core";
 import { isMaptoolkitBasemapActive } from "../../lib/maptoolkit-basemap";
 import { useDesktopSettingsStore } from "../../hooks/useDesktopSettings";
 import { MENU_MANAGED_PLUGIN_IDS, isMenuVisible, isPluginVisible } from "../../lib/ui-profile";
@@ -2205,6 +2207,11 @@ export function TopToolbar({
     if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
     ribbonNoticeTimerRef.current = setTimeout(() => setRibbonNotice(null), 2600);
   }, []);
+  const showNotice = useCallback((text: string, ms = 4200) => {
+    setRibbonNotice(text);
+    if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    ribbonNoticeTimerRef.current = setTimeout(() => setRibbonNotice(null), ms);
+  }, []);
   useEffect(
     () => () => {
       if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
@@ -2281,7 +2288,39 @@ export function TopToolbar({
         setBasemapStyleUrl(next);
       },
       flipTheme: () => onToggleThemeMode(),
-      pickLocalCacheDir: () => ribbonPending("本地缓存目录导入（接入 xyz-cache 包）"),
+      pickLocalCacheDir: (kind) => {
+        if (kind === "3dtiles") {
+          ribbonPending("3D Tiles 本地目录导入（需要 Cesium 本地协议，后续接入）");
+          return;
+        }
+        void (async () => {
+          try {
+            if (!isTauri()) {
+              showNotice("引用本机瓦片目录需要 GeoLibre 桌面端（浏览器请使用服务端托管）。");
+              return;
+            }
+            const { open } = await import("@tauri-apps/plugin-dialog");
+            const selected = await open({ directory: true, multiple: false });
+            if (typeof selected !== "string") return;
+            const scan = await scanXyzDir(selected);
+            useAppStore.getState().addLayer({
+              id: `xyz-dir-${Date.now()}`,
+              name: selected.split(/[\\/]/).filter(Boolean).pop() || "本机 XYZ 缓存",
+              type: "xyz",
+              source: { tiles: [xyzDirTileTemplate(scan)], minzoom: scan.minZoom, maxzoom: scan.maxZoom },
+              visible: true,
+              opacity: 1,
+              style: structuredClone(DEFAULT_LAYER_STYLE),
+              metadata: { importedFrom: "local-xyz-dir", minZoom: scan.minZoom, maxZoom: scan.maxZoom, ext: scan.ext },
+            });
+            showNotice(
+              `已加载本机 XYZ 缓存：z${scan.minZoom}–z${scan.maxZoom}（${scan.ext.toUpperCase()}，${scan.zoomDirCount} 个缩放级）`,
+            );
+          } catch (e) {
+            showNotice(`加载本机 XYZ 缓存失败：${e instanceof Error ? e.message : String(e)}`, 6000);
+          }
+        })();
+      },
       resetLayout: () => useDockStore.getState().resetDockLayout(),
       toggleDockEditor: () => {
         if (onToggleDockEditor) onToggleDockEditor();

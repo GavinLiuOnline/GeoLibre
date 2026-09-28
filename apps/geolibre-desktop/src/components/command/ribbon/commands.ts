@@ -197,7 +197,7 @@ const dataGroups: RibbonGroup[] = [
     id: 'cache-local',
     label: '本地缓存',
     commands: [
-      { id: 'data.import-xyz-dir', tab: 'data', group: 'cache-local', label: 'XYZ 缓存目录…', icon: 'grid', primary: true, run: (c) => c.pickLocalCacheDir('xyz') , pending: true },
+      { id: 'data.import-xyz-dir', tab: 'data', group: 'cache-local', label: 'XYZ 缓存目录…', icon: 'grid', primary: true, hint: '本机 z/x/y 瓦片树免上传上屏（桌面端）', run: (c) => c.pickLocalCacheDir('xyz') },
       { id: 'data.import-3dtiles-dir', tab: 'data', group: 'cache-local', label: '3D Tiles 缓存目录…', icon: 'cube', primary: true, run: (c) => c.pickLocalCacheDir('3dtiles') , pending: true },
       {
         id: 'data.import-desktop-native',

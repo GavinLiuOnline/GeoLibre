@@ -126,6 +126,7 @@ import {
 import type { DataUrlLoadState } from "../../hooks/useDataUrlLoader";
 import { registerKmlSuperOverlayProtocol } from "../../lib/kml-super-overlay";
 import { registerMbtilesProtocol } from "../../lib/mbtiles";
+import { registerXyzDirProtocol } from "../../lib/xyz-dir-protocol";
 import { hasReverseGeocodeConsent } from "../../lib/reverse-geocode-consent";
 import { hasKnowledgeCardConsent, recordKnowledgeCardConsent } from "../../lib/knowledge-consent";
 import { wikipediaLang } from "../../lib/knowledge";
@@ -1150,6 +1151,7 @@ export function DesktopShell({
     void registerKmlSuperOverlayProtocol();
     if (isTauri()) {
       registerMbtilesProtocol();
+      registerXyzDirProtocol();
       registerXyzTileProtocol();
     }
   }, []);
