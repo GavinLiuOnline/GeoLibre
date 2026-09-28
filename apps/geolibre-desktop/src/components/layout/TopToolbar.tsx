@@ -1,12 +1,19 @@
 import { readControlPreference, writeControlPreference } from "../../lib/control-preferences";
 import { supportsAddDataRenderer } from "../../lib/add-data-renderer";
 import {
+  DEFAULT_BASEMAP,
   DEFAULT_PROJECT_NAME,
   excludeHiddenFieldsFromProject,
   redactProjectCredentials,
   serializeProject,
   useAppStore,
+  useDockStore,
 } from "@geolibre/core";
+import { findCommand, type RibbonContext } from "../command/ribbon/commands";
+import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
+import { ServicesDialog } from "../panels/ServicesDialog";
+import { PublishDialog } from "../panels/PublishDialog";
+import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
   resetPrimaryCesiumBuiltInControlState,
@@ -115,6 +122,9 @@ import { useVectorTileGeometryBackfill } from "../../hooks/useVectorTileGeometry
 import type { ThemeMode } from "../../hooks/useThemeMode";
 import { isMobile } from "../../lib/is-mobile";
 import { isTauri } from "../../lib/tauri-io";
+import { scanXyzDir, xyzDirTileTemplate } from "../../lib/xyz-dir-protocol";
+import { local3dTilesUrl } from "../../lib/local-3dtiles";
+import { DEFAULT_LAYER_STYLE } from "@geolibre/core";
 import { isMaptoolkitBasemapActive } from "../../lib/maptoolkit-basemap";
 import { useDesktopSettingsStore } from "../../hooks/useDesktopSettings";
 import { MENU_MANAGED_PLUGIN_IDS, isMenuVisible, isPluginVisible } from "../../lib/ui-profile";
@@ -203,6 +213,10 @@ interface TopToolbarProps {
   onOpenDiagnostics: () => void;
   onOpenProjectHistory: () => void;
   onToggleThemeMode: () => void;
+  /** Ribbon「Dock 编辑器布局」开关（由 DesktopShell 注入；未注入时提示兜底） */
+  onToggleDockEditor?: () => void;
+  /** 顶点编辑：对选中图层开启/结束几何编辑（DesktopShell 注入） */
+  onToggleVertexEdit?: () => void;
   // Opens the Offline Basemap Extract panel, mounted in DesktopShell over the
   // map so it can stay non-modal (the map is interactive for drawing a bbox).
   onOpenBasemapExtract: () => void;
@@ -233,6 +247,8 @@ export function TopToolbar({
   onOpenDiagnostics,
   onOpenProjectHistory,
   onToggleThemeMode,
+  onToggleDockEditor,
+  onToggleVertexEdit,
   onOpenBasemapExtract,
   onAddComment,
   viewer = false,
@@ -1359,6 +1375,15 @@ export function TopToolbar({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [printLayoutOpen, setPrintLayoutOpen] = useState(false);
   const [fieldCollectionOpen, setFieldCollectionOpen] = useState(false);
+  const [reprojectionOpen, setReprojectionOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
+  // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
+  // 完成后再打开生成对话框（bbox 随 prop 传入）。
+  const [regionDrawArmed, setRegionDrawArmed] = useState(false);
+  const [regionBbox, setRegionBbox] = useState<[number, number, number, number] | null>(null);
+  const [regionHint, setRegionHint] = useState<string | null>(null);
   const [gpsTrackingOpen, setGpsTrackingOpen] = useState(false);
   const [recordTourOpen, setRecordTourOpen] = useState(false);
   const [recordVideoOpen, setRecordVideoOpen] = useState(false);
@@ -2170,8 +2195,253 @@ export function TopToolbar({
     renderLabel: renderToolbarLabel,
   };
 
+  // ---------------------------------------------------------------------------
+  // Ribbon 命令系统（Phase 2 PR1）：注册表见 command/ribbon/commands.ts。
+  // 已接入的入口直连既有动作；未接入的以 ribbonNotice 提示兜底（随后续 PR 逐个消除）。
+  // ---------------------------------------------------------------------------
+  const setPrimaryRenderer = useAppStore((s) => s.setPrimaryRenderer);
+  const setBasemapStyleUrl = useAppStore((s) => s.setBasemapStyleUrl);
+  const [ribbonNotice, setRibbonNotice] = useState<string | null>(null);
+  const ribbonNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ribbonPending = useCallback((label: string) => {
+    setRibbonNotice(`「${label}」将在后续阶段接入`);
+    if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    ribbonNoticeTimerRef.current = setTimeout(() => setRibbonNotice(null), 2600);
+  }, []);
+  const showNotice = useCallback((text: string, ms = 4200) => {
+    setRibbonNotice(text);
+    if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    ribbonNoticeTimerRef.current = setTimeout(() => setRibbonNotice(null), ms);
+  }, []);
+  useEffect(
+    () => () => {
+      if (ribbonNoticeTimerRef.current) clearTimeout(ribbonNoticeTimerRef.current);
+    },
+    [],
+  );
+  const ribbonCtx = useMemo<RibbonContext>(
+    () => ({
+      openDialog: (key) => {
+        if (key === "import") {
+          setAddDataKind("raster");
+          return;
+        }
+        if (key === "settings") {
+          ribbonPending("设置面板（工具栏内已有入口）");
+          return;
+        }
+        if (key === "publish") {
+          setPublishOpen(true);
+          return;
+        }
+        ribbonPending(key);
+      },
+      openBasemapDialog: () => onOpenBasemapExtract(),
+      openHostDirectoryDialog: () => setServicesOpen(true),
+      openServiceListDialog: () => setServicesOpen(true),
+      openUrlImportDialog: () => setAddDataKind("xyz"),
+      openSceneListDialog: () => ribbonPending("从服务端打开（Phase 3）"),
+      openProjectPackage: (tab) => {
+        if (tab === "import") void projectFiles.handleOpenFromFile();
+        else void projectFiles.handleSaveAs();
+      },
+      openGenerateCache: (tab) => {
+        if (tab === "3d") {
+          ribbonPending("3D Tiles 生成（后续 PR）");
+          return;
+        }
+        setCacheDialog("2d");
+      },
+      openRegionCache: () => {
+        setRegionBbox(null);
+        setRegionDrawArmed(true);
+        ribbonPending("在地图上拖拽框选缓存范围（再次点击取消）");
+      },
+      openReprojectionDialog: () => setReprojectionOpen(true),
+      openAboutDialog: () => setAboutOpen(true),
+      pickAndOpenScene: () => ribbonPending("从服务端打开（Phase 3）"),
+      saveToServer: async () => {
+        await projectFiles.handleSave();
+      },
+      downloadScene: () => ribbonPending("服务端下载（Phase 3）"),
+      newScene: () => setNewProjectDialogOpen(true),
+      setTool: (tool) => {
+        if (tool === "draw-point" || tool === "draw-line" || tool === "draw-polygon") {
+          setFieldCollectionOpen(true);
+          return;
+        }
+        if (tool === "pan") return; // 地图默认即漫游
+        ribbonPending("顶点编辑 / 拾取 / 框选（后续 PR 接入）");
+      },
+      setView: (mode) => {
+        if (mode === "3D") setPrimaryRenderer("cesium");
+        else if (mode === "2D") setPrimaryRenderer("maplibre");
+        else ribbonPending("哥伦布视图");
+      },
+      cycleBasemap: () => {
+        const order = [
+          DEFAULT_BASEMAP,
+          "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+          "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+        ];
+        const current = useAppStore.getState().basemapStyleUrl;
+        const next = order[(order.indexOf(current) + 1) % order.length] ?? DEFAULT_BASEMAP;
+        setBasemapStyleUrl(next);
+      },
+      flipTheme: () => onToggleThemeMode(),
+      pickLocalCacheDir: (kind) => {
+        if (kind === "3dtiles") {
+          void (async () => {
+            try {
+              if (!isTauri()) {
+                showNotice("引用本机 3D Tiles 目录需要 GeoLibre 桌面端（浏览器请使用服务端托管）。");
+                return;
+              }
+              const { open } = await import("@tauri-apps/plugin-dialog");
+              const selected = await open({ directory: true, multiple: false });
+              if (typeof selected !== "string") return;
+              // 校验目录根含 tileset.json
+              const { readLocalFileBytes } = await import("../../lib/tauri-io");
+              await readLocalFileBytes(`${selected.replace(/[/\\]+$/, "")}/tileset.json`);
+              const name = selected.split(/[\\/]/).filter(Boolean).pop() || "本机 3D Tiles";
+              useAppStore.getState().addLayer({
+                id: `3dtiles-dir-${Date.now()}`,
+                name,
+                type: "3d-tiles",
+                source: { type: "3d-tiles", sourceId: `3dtiles-dir-${Date.now()}`, url: local3dTilesUrl(selected) },
+                visible: true,
+                opacity: 1,
+                style: structuredClone(DEFAULT_LAYER_STYLE),
+                metadata: { importedFrom: "local-3dtiles-dir" },
+              });
+              showNotice(`已加载本机 3D Tiles：${name}（在全球视图中渲染）`);
+            } catch (e) {
+              showNotice(`加载本机 3D Tiles 失败：${e instanceof Error ? e.message : String(e)}`, 6000);
+            }
+          })();
+          return;
+        }
+        void (async () => {
+          try {
+            if (!isTauri()) {
+              showNotice("引用本机瓦片目录需要 GeoLibre 桌面端（浏览器请使用服务端托管）。");
+              return;
+            }
+            const { open } = await import("@tauri-apps/plugin-dialog");
+            const selected = await open({ directory: true, multiple: false });
+            if (typeof selected !== "string") return;
+            const scan = await scanXyzDir(selected);
+            useAppStore.getState().addLayer({
+              id: `xyz-dir-${Date.now()}`,
+              name: selected.split(/[\\/]/).filter(Boolean).pop() || "本机 XYZ 缓存",
+              type: "xyz",
+              source: { tiles: [xyzDirTileTemplate(scan)], minzoom: scan.minZoom, maxzoom: scan.maxZoom },
+              visible: true,
+              opacity: 1,
+              style: structuredClone(DEFAULT_LAYER_STYLE),
+              metadata: { importedFrom: "local-xyz-dir", minZoom: scan.minZoom, maxZoom: scan.maxZoom, ext: scan.ext },
+            });
+            showNotice(
+              `已加载本机 XYZ 缓存：z${scan.minZoom}–z${scan.maxZoom}（${scan.ext.toUpperCase()}，${scan.zoomDirCount} 个缩放级）`,
+            );
+          } catch (e) {
+            showNotice(`加载本机 XYZ 缓存失败：${e instanceof Error ? e.message : String(e)}`, 6000);
+          }
+        })();
+      },
+      resetLayout: () => useDockStore.getState().resetDockLayout(),
+      toggleDockEditor: () => {
+        if (onToggleDockEditor) onToggleDockEditor();
+        else ribbonPending("Dock 编辑器布局");
+      },
+      toggleVertexEdit: () => {
+        if (onToggleVertexEdit) onToggleVertexEdit();
+        else ribbonPending("先在图层列表中选择要素图层");
+      },
+      isElectronAvailable: false,
+    }),
+    [
+      ribbonPending,
+      setAddDataKind,
+      onOpenBasemapExtract,
+      projectFiles,
+      setAboutOpen,
+      setNewProjectDialogOpen,
+      setPrimaryRenderer,
+      setBasemapStyleUrl,
+      onToggleThemeMode,
+      onToggleDockEditor,
+      onToggleVertexEdit,
+    ],
+  );
+  const runRibbonCommand = useCallback(
+    (id: string) => {
+      findCommand(id)?.run(ribbonCtx);
+    },
+    [ribbonCtx],
+  );
+
+  // 框选区域缓存：拖拽完成后打开生成对话框。
+  // 可见矩形由 showExtent 绘制（drawExtent 只捕指针不画图），在 onChange
+  // 回调内命令式刷新——与底图提取面板等效，不依赖 effect 重渲染时序；
+  // 生成对话框打开期间保持显示，对话框关闭时清除。
+  const regionPreviewDisposeRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!regionDrawArmed) return;
+    const engine = mapControllerRef.current;
+    if (!engine) {
+      setRegionDrawArmed(false);
+      return;
+    }
+    const disposePreview = () => {
+      regionPreviewDisposeRef.current?.();
+      regionPreviewDisposeRef.current = null;
+    };
+    const lifecycle = engine.drawExtent({
+      onChange: (extent) => {
+        setRegionBbox(extent);
+        setRegionHint(
+          `框选中：W ${extent[0].toFixed(3)} / S ${extent[1].toFixed(3)} / E ${extent[2].toFixed(3)} / N ${extent[3].toFixed(3)}`,
+        );
+        disposePreview();
+        regionPreviewDisposeRef.current = engine.showExtent(extent);
+      },
+      onDone: (extent) => {
+        setRegionDrawArmed(false);
+        setRegionBbox(extent);
+        disposePreview();
+        regionPreviewDisposeRef.current = engine.showExtent(extent);
+        setCacheDialog("region");
+      },
+      onCancel: () => {
+        setRegionDrawArmed(false);
+        setRegionHint(null);
+        disposePreview();
+      },
+    });
+    return () => {
+      lifecycle?.();
+      disposePreview();
+    };
+  }, [regionDrawArmed, mapControllerRef, mapReadyGeneration]);
+
+  // 生成对话框关闭 → 清除预览矩形
+  useEffect(() => {
+    if (cacheDialog === "region") return;
+    regionPreviewDisposeRef.current?.();
+    regionPreviewDisposeRef.current = null;
+  }, [cacheDialog]);
   return (
-    <header
+    <>
+      {ribbonNotice || regionHint ? (
+        <div
+          role="status"
+          className="pointer-events-none fixed inset-x-0 top-12 z-[80] mx-auto w-fit rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md"
+        >
+          {regionHint ?? ribbonNotice}
+        </div>
+      ) : null}
+      <header
       className={cn(
         "flex min-h-11 min-w-0 shrink-0 items-center gap-1 border-b bg-card py-1",
         compact
@@ -2187,6 +2457,7 @@ export function TopToolbar({
       {!viewer && isMenuVisible(uiProfile, "project") && (
         <ProjectMenu
           chrome={chrome}
+          runRibbon={runRibbonCommand}
           collaborationEnabled={collaboration.enabled}
           shareHostStatus={shareHost.status}
           onNewProject={() => setNewProjectDialogOpen(true)}
@@ -2213,7 +2484,7 @@ export function TopToolbar({
         />
       )}
       {!viewer && isMenuVisible(uiProfile, "edit") && (
-        <EditMenu chrome={chrome} mapControllerRef={mapControllerRef} />
+        <EditMenu chrome={chrome} mapControllerRef={mapControllerRef} runRibbon={runRibbonCommand} />
       )}
       {/* `|| primaryRenderer !== "maplibre"`: an admin or custom profile can hide
           the whole "view" menu via `hiddenMenus`, which ViewMenu's own item-level
@@ -2270,6 +2541,7 @@ export function TopToolbar({
           }}
           onZoomIn={() => mapControllerRef.current?.zoomIn()}
           onZoomOut={() => mapControllerRef.current?.zoomOut()}
+          runRibbon={runRibbonCommand}
         />
       )}
       <NewProjectDialog
@@ -2278,6 +2550,19 @@ export function TopToolbar({
         onSaveCurrentProject={projectFiles.handleSave}
         onProjectCreated={resetRuntimeControlsForNewProject}
       />
+      <ReprojectionDialog open={reprojectionOpen} onOpenChange={setReprojectionOpen} />
+      <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} />
+      <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
+      {cacheDialog ? (
+        <GenerateCacheDialog
+          open
+          onOpenChange={(o) => {
+            if (!o) setCacheDialog(null);
+          }}
+          mode={cacheDialog === "region" ? "region" : "vector"}
+          bbox={regionBbox ?? undefined}
+        />
+      ) : null}
       {!viewer && isMenuVisible(uiProfile, "addData") && deploymentCapabilities.has("data:add") && (
         <AddDataMenu
           disabled={!addDataReady}
@@ -2291,6 +2576,7 @@ export function TopToolbar({
             openAddDataKind("deckgl-viz");
           }}
           onOpenOsmPbfDialog={() => osmPbf.setDialogOpen(true)}
+          runRibbon={runRibbonCommand}
         />
       )}
       {!viewer &&
@@ -2298,6 +2584,7 @@ export function TopToolbar({
         deploymentCapabilities.has("processing:run") && (
           <ProcessingMenu
             chrome={chrome}
+            runRibbon={runRibbonCommand}
             earthEnginePanel={panels.earthEngine}
             onOpenNetworkTool={consent.openNetworkTool}
             onOpenPlanetaryComputer={handleOpenPlanetaryComputer}
@@ -2606,5 +2893,6 @@ export function TopToolbar({
         ) : null}
       </div>
     </header>
+    </>
   );
 }

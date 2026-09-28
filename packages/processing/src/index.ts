@@ -329,6 +329,8 @@ export {
   type SegmentEverythingOptions,
 } from "./segment-everything";
 export { isOrtAvailable } from "./ort";
+export * from "./reprojection-crs";
+export * from "./reprojection-transform";
 export {
   extractCogSubset,
   extractWmsSubset,

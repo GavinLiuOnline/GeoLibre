@@ -88,3 +88,8 @@ apps/geolibre-desktop/src-tauri/mas/embedded.provisionprofile
 
 # Local Android Gradle cache for the vendored Tauri geolocation plugin.
 apps/geolibre-desktop/src-tauri/vendor/tauri-plugin-geolocation/android/.gradle/
+.npm-cache/
+
+# GIS 服务端运行时数据目录（场景/资产/发布产物落盘）
+services/gis-server/data/
+services/data/

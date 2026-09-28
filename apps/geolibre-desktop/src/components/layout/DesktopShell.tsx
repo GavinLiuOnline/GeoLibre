@@ -126,6 +126,8 @@ import {
 import type { DataUrlLoadState } from "../../hooks/useDataUrlLoader";
 import { registerKmlSuperOverlayProtocol } from "../../lib/kml-super-overlay";
 import { registerMbtilesProtocol } from "../../lib/mbtiles";
+import { registerXyzDirProtocol } from "../../lib/xyz-dir-protocol";
+import { registerLocal3dTilesSupport } from "../../lib/local-3dtiles";
 import { hasReverseGeocodeConsent } from "../../lib/reverse-geocode-consent";
 import { hasKnowledgeCardConsent, recordKnowledgeCardConsent } from "../../lib/knowledge-consent";
 import { wikipediaLang } from "../../lib/knowledge";
@@ -163,6 +165,8 @@ import { MapContextMenu } from "./MapContextMenu";
 import { KnowledgeCardPanel, type KnowledgePlace } from "./KnowledgeCardPanel";
 import { KnowledgeCardConsentDialog } from "./KnowledgeCardConsentDialog";
 import { MapGrid } from "./MapGrid";
+import { DockPanel } from "../dock/DockPanel";
+import { DockOutputPanel, DockPropertyPanel } from "../dock/panels";
 import { PrimaryMapboxCanvas } from "./PrimaryMapboxCanvas";
 import { PrimaryArcgisCanvas } from "./PrimaryArcgisCanvas";
 import { PrimaryCesiumCanvas } from "./PrimaryCesiumCanvas";
@@ -1148,7 +1152,9 @@ export function DesktopShell({
     void registerKmlSuperOverlayProtocol();
     if (isTauri()) {
       registerMbtilesProtocol();
+      registerXyzDirProtocol();
       registerXyzTileProtocol();
+      registerLocal3dTilesSupport();
     }
   }, []);
 
@@ -2457,6 +2463,50 @@ export function DesktopShell({
     [deferPanelResize, notebookPanelWidth],
   );
 
+  // ---------------------------------------------------------------------------
+  // Dock 编辑器布局（Phase 2 PR3）：gis-full 风格 Dock 面板覆盖层。
+  // 默认关闭，Ribbon 视图页「Dock 编辑器布局」切换；开启时承载既有 LayerPanel
+  // （真实现）+ 属性/工具/查询/输出占位（PR4/PR5 填充）。
+  // ---------------------------------------------------------------------------
+  const [dockEditorVisible, setDockEditorVisible] = useState(false);
+  const toggleDockEditor = useCallback(() => setDockEditorVisible((v) => !v), []);
+  const dockContentRegistry = useMemo(
+    () => ({
+      PropertyPanel: () => <DockPropertyPanel />,
+      OutputWindow: () => <DockOutputPanel />,
+      LayerPanel: (panelProps: Record<string, unknown>) => (
+        <LayerPanel
+          themeMode={themeMode}
+          mapControllerRef={mapControllerRef}
+          collaborationApi={collaboration}
+          onResizeStart={startLayerPanelResize}
+          geometryEditLayerId={geometryEditLayerId}
+          onToggleGeometryEdit={handleToggleGeometryEdit}
+          onCancelGeometryEdit={handleCancelGeometryEdit}
+          onMaterializeDuckDBLayer={handleMaterializeDuckDBLayer}
+          onOpenRasterStylePanel={() => openRasterLayerPanel(createAppAPI(mapControllerRef))}
+          onOpenStylePanel={layoutOptions.stylePanelVisible ? openStylePanel : undefined}
+          onOpenRasterSubset={setRasterSubsetLayer}
+          {...panelProps}
+          hideOwnRail
+        />
+      ),
+    }),
+    // 依赖与既有 rail 中 LayerPanel 渲染处保持一致
+    [
+      themeMode,
+      mapControllerRef,
+      collaboration,
+      startLayerPanelResize,
+      geometryEditLayerId,
+      handleToggleGeometryEdit,
+      handleCancelGeometryEdit,
+      handleMaterializeDuckDBLayer,
+      layoutOptions.stylePanelVisible,
+      openStylePanel,
+    ],
+  );
+
   return (
     <div
       ref={shellRef}
@@ -2487,6 +2537,11 @@ export function DesktopShell({
               setProjectHistoryOpen(true);
             }}
             onToggleThemeMode={onToggleThemeMode}
+            onToggleDockEditor={toggleDockEditor}
+            onToggleVertexEdit={() => {
+              const target = getGeometryEditTargetLayerId() ?? useAppStore.getState().selectedLayerId;
+              if (target) void handleToggleGeometryEdit(target);
+            }}
             onOpenBasemapExtract={() => setBasemapExtractOpen(true)}
             onAddComment={commentTool.toggleTool}
             viewer={layoutOptions.viewer}
@@ -2780,6 +2835,17 @@ export function DesktopShell({
           >
             <FloatingPanels />
           </SectionErrorBoundary>
+          {dockEditorVisible ? (
+            <div className="absolute inset-0 z-30" data-testid="dock-editor-overlay">
+              <SectionErrorBoundary
+                label="Dock editor"
+                displayName={t("shell.section.dockEditor")}
+                fallbackClassName="h-full w-full"
+              >
+                <DockPanel componentRegistry={dockContentRegistry} className="h-full w-full" />
+              </SectionErrorBoundary>
+            </div>
+          ) : null}
           {/* Mounted inside the map area (like FloatingPanels) so the canvas
               floats over the map and drag-clamps to it, not to the whole
               window — the user keeps their layers in view while building. */}

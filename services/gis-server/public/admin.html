@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GIS 服务管理控制台</title>
+<style>
+  /* ============ 基础（对齐 SuperMap iServer/iPortal 控制台风格：深色侧栏 + 浅色内容区） ============ */
+  :root {
+    --sidebar-bg: #1f2d3d;
+    --sidebar-bg-2: #18222f;
+    --sidebar-text: #aebccd;
+    --sidebar-active: #3c8dbc;
+    --content-bg: #f0f3f7;
+    --card-bg: #ffffff;
+    --line: #e4e9f0;
+    --line-soft: #eef1f6;
+    --text: #2c3e50;
+    --text-strong: #243342;
+    --muted: #8492a6;
+    --primary: #3c8dbc;
+    --primary-hover: #367fa9;
+    --ok: #52c41a;
+    --ok-bg: #f0f9eb;
+    --ok-line: #d9ecd0;
+    --gray-badge-bg: #f4f4f5;
+    --gray-badge-line: #e3e5e8;
+    --danger: #d9534f;
+    --tileset: #7d5fc7;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font: 13px/1.6 "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; background: var(--content-bg); color: var(--text); }
+  a { color: var(--primary); text-decoration: none; }
+  button { font: inherit; cursor: pointer; border-radius: 4px; border: 1px solid var(--line); background: #fff; color: var(--text); padding: 4px 12px; }
+  button:hover { border-color: var(--primary); color: var(--primary); }
+  button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  button.primary:hover { background: var(--primary-hover); color: #fff; }
+  button.danger { color: var(--danger); }
+  button.danger:hover { border-color: var(--danger); color: var(--danger); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  input, textarea { font: inherit; background: #fff; color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; outline: none; }
+  input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(60,141,188,.12); }
+  textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ============ 左侧深色导航 ============ */
+  .sidebar { width: 208px; flex: none; background: linear-gradient(180deg, var(--sidebar-bg), var(--sidebar-bg-2)); color: var(--sidebar-text); display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .brand .logo { width: 30px; height: 30px; border-radius: 6px; background: var(--primary); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: 1px; font-size: 13px; }
+  .brand b { color: #fff; font-size: 14px; font-weight: 600; }
+  .nav { padding: 10px 0; flex: 1; }
+  .nav a { display: flex; align-items: center; gap: 10px; padding: 11px 20px; color: var(--sidebar-text); cursor: pointer; border-left: 3px solid transparent; }
+  .nav a:hover { background: rgba(255,255,255,.05); color: #fff; }
+  .nav a.active { background: rgba(60,141,188,.22); border-left-color: var(--sidebar-active); color: #fff; }
+  .nav a .ico { width: 18px; text-align: center; }
+  .sidebar-footer { padding: 12px 18px; font-size: 11px; color: #5d6f83; border-top: 1px solid rgba(255,255,255,.08); }
+
+  /* ============ 右侧主区 ============ */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar { height: 52px; flex: none; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; padding: 0 18px; position: sticky; top: 0; z-index: 10; }
+  .topbar .crumb { font-size: 14px; color: var(--text-strong); font-weight: 600; }
+  .topbar .spacer { flex: 1; }
+  .search-box { position: relative; width: 300px; }
+  .search-box input { width: 100%; padding-left: 30px; background: #f7f9fc; }
+  .search-box::before { content: "🔍"; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 12px; opacity: .55; }
+
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d9534f; }
+  .status.ok { color: var(--ok); }
+  .status.ok .dot { background: var(--ok); }
+
+  .content { padding: 18px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 1px 2px rgba(16,24,40,.04); margin-bottom: 16px; }
+  .card-hd { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+  .card-hd h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-strong); }
+  .card-hd .sub { font-size: 12px; color: var(--muted); }
+  .card-hd .spacer { flex: 1; }
+  .card-bd { padding: 14px 16px; }
+
+  .page-title { margin: 2px 0 14px; }
+  .page-title h1 { margin: 0; font-size: 18px; color: var(--text-strong); font-weight: 600; }
+  .page-title .sub { color: var(--muted); font-size: 12px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 13px 15px; }
+  .stat .num { font-size: 25px; font-weight: 700; color: var(--text-strong); line-height: 1.2; }
+  .stat .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat .ico { float: right; font-size: 19px; opacity: .5; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+  th { background: #f7f9fc; color: #6b7a90; font-weight: 500; font-size: 12px; white-space: nowrap; }
+  tbody tr:hover { background: #f8fbfd; }
+  td .scene-name { font-weight: 600; color: var(--text-strong); }
+  td .desc { color: var(--muted); font-size: 12px; }
+  .mono { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); word-break: break-all; }
+  td.actions { white-space: nowrap; }
+  .btn-group { display: inline-flex; }
+  .btn-group button { padding: 3px 10px; border-radius: 0; margin-left: -1px; }
+  .btn-group button:first-child { border-radius: 4px 0 0 4px; margin-left: 0; }
+  .btn-group button:last-child { border-radius: 0 4px 4px 0; }
+
+  /* 状态徽章（克制：绿=已发布，灰=未发布） */
+  .badge { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; line-height: 20px; border: 1px solid var(--gray-badge-line); background: var(--gray-badge-bg); color: #909399; }
+  .badge.pub { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+  .badge .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 5px; vertical-align: 1px; }
+
+  /* 类型徽章（GeoJSON / XYZ 瓦片 / 3D Tiles / GLB / 混合；3D Tiles 醒目紫色） */
+  .tag { display: inline-block; padding: 0 8px; border-radius: 3px; font-size: 11px; line-height: 19px; border: 1px solid; white-space: nowrap; }
+  .tag.geojson { color: #3c8dbc; border-color: #b8d8ec; background: #ecf5fb; }
+  .tag.tiles { color: #2f9e8f; border-color: #bfe3dd; background: #ecf8f6; }
+  .tag.glb { color: #d18a2d; border-color: #efd9b4; background: #fdf5e8; }
+  .tag.tileset { color: #fff; border-color: var(--tileset); background: var(--tileset); font-weight: 600; }
+  .tag.mixed { color: #6b7a90; border-color: #d5dce5; background: #f1f4f8; font-weight: 600; }
+
+  /* 服务条目卡片（服务注册表视图） */
+  .svc-card { background: #fff; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .svc-card-hd { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+  .svc-card-hd .name { font-weight: 600; color: var(--text-strong); }
+  .svc-card-hd .meta { color: var(--muted); font-size: 12px; }
+  .svc-card-hd .spacer { flex: 1; }
+  .svc-card-bd { padding: 10px 14px; }
+  .svc-group { margin-bottom: 10px; }
+  .svc-group:last-child { margin-bottom: 0; }
+  .svc-group-title { font-weight: 600; color: var(--text-strong); font-size: 12.5px; margin-bottom: 6px; }
+  .svc-group-title .cnt { font-weight: 400; color: var(--muted); }
+  .svc-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid var(--line-soft); border-radius: 4px; margin-bottom: 5px; background: #fbfcfe; }
+  .svc-row:hover { border-color: #cfe0ee; background: #f5f9fd; }
+  .svc-row .url { flex: 1; min-width: 0; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #3477a8; word-break: break-all; cursor: pointer; }
+  .svc-row .url:hover { text-decoration: underline; }
+  .svc-row .name { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+  /* 批量发布 */
+  .batch-list { max-height: 260px; overflow: auto; border: 1px solid var(--line-soft); border-radius: 4px; }
+  .batch-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid var(--line-soft); }
+  .batch-item:last-child { border-bottom: none; }
+  .batch-item:hover { background: #f8fbfd; }
+  .batch-item input { width: auto; }
+  .batch-bar { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #f7f9fc; border-top: 1px solid var(--line-soft); }
+  .batch-result { font-size: 12px; }
+  .batch-result .ok { color: var(--ok); }
+  .batch-result .fail { color: var(--danger); }
+
+  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .form-row input { flex: 1; }
+  #editJson { width: 100%; min-height: 380px; }
+  .empty { color: var(--muted); text-align: center; padding: 22px 0; }
+  .kv { font-size: 12px; color: var(--muted); }
+  .kv b { color: var(--text-strong); }
+  .notice { background: #f6f9fd; border: 1px solid #dbe7f3; border-radius: 4px; padding: 8px 12px; font-size: 12px; color: #4a6076; }
+
+  /* 弹窗 */
+  .mask { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, .45); z-index: 50; align-items: flex-start; justify-content: center; padding: 60px 16px; overflow: auto; }
+  .mask.show { display: flex; }
+  .modal { background: #fff; border-radius: 8px; width: 780px; max-width: 100%; box-shadow: 0 12px 40px rgba(15,23,42,.25); }
+  .modal-hd { display: flex; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--line-soft); }
+  .modal-hd h3 { margin: 0; font-size: 15px; color: var(--text-strong); }
+  .modal-hd .x { margin-left: auto; border: none; background: none; font-size: 18px; color: var(--muted); cursor: pointer; }
+  .modal-bd { padding: 16px 18px; }
+
+  .toast { position: fixed; right: 22px; bottom: 22px; background: #fff; border: 1px solid var(--primary); border-left: 4px solid var(--primary); border-radius: 6px; padding: 10px 16px; box-shadow: 0 6px 24px rgba(15,23,42,.15); opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 480px; z-index: 99; }
+  .toast.show { opacity: 1; }
+  .toast.err { border-color: var(--danger); border-left-color: var(--danger); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- 左侧固定侧栏导航：概览 / 场景管理 / 服务发布 / 资产管理 -->
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">GIS</span><b>服务管理控制台</b></div>
+    <nav class="nav" id="nav">
+      <a data-page="overview" class="active"><span class="ico">▦</span>概览</a>
+      <a data-page="scenes"><span class="ico">▤</span>场景管理</a>
+      <a data-page="services"><span class="ico">⛭</span>服务发布</a>
+      <a data-page="assets"><span class="ico">▣</span>资产管理</a>
+    </nav>
+    <div class="sidebar-footer">GIS Server <span id="footVersion">v0.1.0</span><br/>REST + 文件存储</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="crumb" id="crumb">概览</span>
+      <span class="spacer"></span>
+      <div class="search-box"><input id="globalSearch" placeholder="全局搜索：场景 / 服务（名称、ID、slug）" /></div>
+      <span id="health" class="status"><span class="dot"></span><span id="healthText">检测中…</span></span>
+      <button onclick="refreshAll()">刷新</button>
+    </header>
+
+    <main class="content">
+      <!-- 概览 -->
+      <section id="page-overview" class="page active">
+        <div class="page-title"><h1>概览</h1><div class="sub">服务端运行状态与服务资源总览</div></div>
+        <div class="stats">
+          <div class="stat"><span class="ico">▤</span><div class="num" id="statScenes">–</div><div class="lbl">场景数</div></div>
+          <div class="stat"><span class="ico">⛭</span><div class="num" id="statServices">–</div><div class="lbl">服务数</div></div>
+          <div class="stat"><span class="ico">▣</span><div class="num" id="statAssets">–</div><div class="lbl">资产数</div></div>
+          <div class="stat"><span class="ico">▶</span><div class="num" id="stat2d">–</div><div class="lbl">2D 服务（GeoJSON/瓦片）</div></div>
+          <div class="stat"><span class="ico">◈</span><div class="num" id="stat3d">–</div><div class="lbl">3D 服务（3D Tiles/GLB）</div></div>
+          <div class="stat"><span class="ico">◉</span><div class="num" id="statUptime">–</div><div class="lbl">服务运行（秒）</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h2>最近发布</h2><span class="sub">按最近发布时间排序</span><span class="spacer"></span>
+            <button onclick="showPage('services')">前往服务发布</button></div>
+          <div class="card-bd" id="overviewRecent"><div class="empty">暂无发布记录</div></div>
+        </div>
+      </section>
+
+      <!-- 场景管理 -->
+      <section id="page-scenes" class="page">
+        <div class="page-title"><h1>场景管理</h1><div class="sub">场景即服务：发布后生成 2D / 3D / 瓦片服务地址</div></div>
+        <div class="card">
+          <div class="card-hd"><h2>场景列表</h2><span class="sub" id="sceneFilterHint"></span><span class="spacer"></span>
+            <button class="primary" onclick="openCreate()">+ 新建场景</button></div>
+          <table>
+            <thead><tr><th style="width:26%">名称</th><th>ID</th><th>更新时间</th><th>发布状态</th><th style="width:250px">操作</th></tr></thead>
+            <tbody id="sceneRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 服务发布（核心页）：服务注册表 + 批量发布 -->
+      <section id="page-services" class="page">
+        <div class="page-title"><h1>服务发布</h1><div class="sub">统一服务注册表：每个条目即一个对外服务实例</div></div>
+        <div class="card">
+          <div class="card-hd"><h2>批量发布</h2><span class="sub">多选场景一键发布，单个失败不影响其余</span></div>
+          <div class="card-bd">
+            <div class="batch-list" id="batchList"></div>
+            <div class="batch-bar">
+              <button onclick="toggleAllBatch()">全选 / 全不选</button>
+              <button class="primary" onclick="publishBatch()">发布选中场景</button>
+              <span class="kv" id="batchSummary"></span>
+            </div>
+            <div class="batch-result" id="batchResult"></div>
+          </div>
+        </div>
+
+        <div class="notice" style="margin-bottom:14px">
+          <b>slug 规则</b>：<code>&lt;场景名 slugified&gt;-&lt;ID 前 8 位&gt;</code>（如 <code>e2e-f709415b</code>）；
+          同一场景重复发布覆盖同一服务地址（地址稳定）；删除服务不影响场景源数据，可随时重新发布。
+        </div>
+        <div id="serviceList"></div>
+      </section>
+
+      <!-- 资产管理 -->
+      <section id="page-assets" class="page">
+        <div class="page-title"><h1>资产管理</h1><div class="sub">服务端托管的上传数据（GeoJSON / KML / GLB / 瓦片 zip / 3D Tiles 数据集 zip）</div></div>
+        <div class="card">
+          <div class="card-hd"><h2>上传数据</h2><span class="sub">.glb / .gltf / .geojson / .json / .kml / .zip，单文件 ≤ 1GB；含 tileset.json 的 zip 可直发为 3D Tiles 服务</span></div>
+          <div class="card-bd">
+            <div class="form-row">
+              <input type="file" id="uploadFile" style="flex:1" />
+              <button class="primary" onclick="uploadAsset()">上传</button>
+            </div>
+            <div id="uploadResult"></div>
+            <div class="kv">场景图层引用：<code>source: { kind: "assetId", assetId: "…", filename: "…" }</code></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h2>资产列表</h2><span class="sub" id="assetStat"></span><span class="spacer"></span><button onclick="loadAssets()">刷新</button></div>
+          <table>
+            <thead><tr><th>名称</th><th>类型</th><th>大小</th><th>更新时间</th><th>URL</th><th style="width:150px">操作</th></tr></thead>
+            <tbody id="assetRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 场景编辑（由场景管理进入） -->
+      <section id="page-editor" class="page">
+        <div class="page-title">
+          <h1>场景编辑 <span class="kv" id="editingId"></span></h1>
+          <div class="sub">直接编辑 SceneDocument JSON；保存后可一键发布</div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><h2 id="editorTitle">编辑场景</h2><span class="spacer"></span><button onclick="showPage('scenes')">← 返回列表</button></div>
+          <div class="card-bd">
+            <div class="form-row"><input id="editName" placeholder="场景名称（必填）" /><input id="editDesc" placeholder="场景描述（可选）" /></div>
+            <div class="form-row"><textarea id="editJson" spellcheck="false" placeholder="场景文档 JSON（SceneDocument）"></textarea></div>
+            <div class="form-row">
+              <button class="primary" onclick="saveScene()">保存场景</button>
+              <button onclick="formatJson()">格式化</button>
+              <button onclick="sampleJson()">插入示例图层</button>
+              <span style="flex:1"></span>
+              <button class="primary" onclick="publishEditing()">保存并发布</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- 服务地址 / 场景详情 弹窗 -->
+<div class="mask" id="modalMask">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="modalTitle">详情</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-bd" id="modalBody"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const fmtTime = (iso) => (iso ? new Date(iso).toLocaleString('zh-CN', { hour12: false }) : '—');
+function fmtBytes(n) {
+  if (n !== 0 && !n) return '—';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0, v = n;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return (i === 0 ? v : v.toFixed(1)) + ' ' + units[i];
+}
+
+let scenes = [];
+let services = [];               // ServiceEntry[]（服务注册表）
+let serviceBySlug = {};
+const serviceByScene = {};       // sceneId -> entry（最新一条）
+let assets = [];
+let editing = null;              // 正在编辑的场景 id（null = 新建）
+
+function toast(msg, isErr) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (isErr ? ' err' : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => (el.className = 'toast'), 3000);
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let msg = res.statusText;
+    try { msg = (await res.json()).error || msg; } catch { /* ignore */ }
+    throw new Error(`HTTP ${res.status}: ${msg}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
+const jsonOpts = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+async function copyText(text) {
+  const full = /^https?:\/\//i.test(text) ? text : location.origin + text;
+  try { await navigator.clipboard.writeText(full); toast('已复制：' + full); }
+  catch { toast('复制失败，请手动复制'); }
+}
+
+/* ---------------- 页面切换 ---------------- */
+const CRUMB = { overview: '概览', scenes: '场景管理', services: '服务发布', assets: '资产管理', editor: '场景管理 / 编辑' };
+function showPage(name) {
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  const page = $('#page-' + name);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.page === (name === 'editor' ? 'scenes' : name)));
+  $('#crumb').textContent = CRUMB[name] || name;
+  if (name === 'assets') loadAssets();
+}
+$('#nav').addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-page]');
+  if (a) showPage(a.dataset.page);
+});
+
+/* ---------------- 加载 ---------------- */
+async function loadHealth() {
+  try {
+    const h = await api('/api/health');
+    $('#health').className = 'status ok';
+    $('#healthText').textContent = `服务正常 · v${h.version || '0.1.0'}`;
+    $('#footVersion').textContent = 'v' + (h.version || '0.1.0');
+    $('#statUptime').textContent = Math.round(h.uptime || 0);
+  } catch {
+    $('#health').className = 'status';
+    $('#healthText').textContent = '服务不可用';
+  }
+}
+
+async function loadScenes() {
+  try { scenes = await api('/api/scenes'); }
+  catch (err) {
+    scenes = [];
+    $('#sceneRows').innerHTML = `<tr><td colspan="5" class="empty">加载失败：${esc(err.message)}</td></tr>`;
+  }
+  await loadServices(false);
+  $('#statScenes').textContent = scenes.length;
+  renderSceneTable();
+}
+
+async function loadServices(render) {
+  if (render === undefined) render = true;
+  try { services = await api('/api/services'); }
+  catch (err) {
+    services = [];
+    if (render) $('#serviceList').innerHTML = `<div class="empty">加载失败：${esc(err.message)}</div>`;
+  }
+  serviceBySlug = {};
+  for (const k of Object.keys(serviceByScene)) delete serviceByScene[k];
+  services.forEach((s) => {
+    serviceBySlug[s.slug] = s;
+    if (s.sceneId) serviceByScene[s.sceneId] = s; // 列表按 updatedAt 倒序 → 首条即最新
+  });
+  $('#statServices').textContent = services.length;
+  $('#stat2d').textContent = services.filter((s) => s.types.includes('geojson') || s.types.includes('tiles')).length;
+  $('#stat3d').textContent = services.filter((s) => s.types.includes('tileset') || s.types.includes('glb')).length;
+  if (render) { renderServices(); renderOverviewRecent(); renderBatchList(); }
+}
+
+async function loadAssets() {
+  try { assets = await api('/api/assets'); }
+  catch (err) { assets = []; $('#assetRows').innerHTML = `<tr><td colspan="6" class="empty">加载失败：${esc(err.message)}</td></tr>`; }
+  $('#statAssets').textContent = assets.length;
+  renderAssetTable();
+}
+
+function refreshAll() {
+  loadHealth();
+  loadScenes();
+  loadAssets();
+}
+
+/* ---------------- 概览 ---------------- */
+function renderOverviewRecent() {
+  const box = $('#overviewRecent');
+  if (!services.length) { box.innerHTML = '<div class="empty">暂无发布记录，前往「服务发布」发布一个场景</div>'; return; }
+  box.innerHTML = services.slice(0, 5).map((s) => `
+    <div class="svc-row">
+      ${typeBadges(s.types)}
+      <span class="name"><b style="color:var(--text-strong)">${esc(s.sceneName || s.slug)}</b> · ${esc(s.slug)} · ${esc(fmtTime(s.updatedAt))}</span>
+      <span style="flex:1"></span>
+      <button onclick="locateService('${esc(s.slug)}')">查看地址</button>
+      ${s.types.includes('tileset') ? `<a href="/preview/3dtiles/${esc(s.slug)}" target="_blank"><button>预览</button></a>` : ''}
+    </div>`).join('');
+}
+
+function locateService(slug) {
+  showPage('services');
+  const el = document.getElementById('svc-' + slug);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.style.borderColor = 'var(--primary)'; setTimeout(() => (el.style.borderColor = ''), 1600); }
+}
+
+/* ---------------- 场景管理 ---------------- */
+function renderSceneTable() {
+  const kw = ($('#globalSearch').value || '').trim().toLowerCase();
+  $('#sceneFilterHint').textContent = kw ? `筛选：${kw}` : '';
+  const rows = scenes.filter((s) => !kw || s.name.toLowerCase().includes(kw) || String(s.id).toLowerCase().includes(kw));
+  const tbody = $('#sceneRows');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${kw ? '没有匹配的场景' : '暂无场景，点击右上角「+ 新建场景」'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((s) => {
+    const pub = !!serviceByScene[s.id];
+    return `
+    <tr>
+      <td><span class="scene-name">${esc(s.name)}</span>${s.description ? `<div class="desc">${esc(s.description)}</div>` : ''}</td>
+      <td class="mono">${esc(s.id)}</td>
+      <td class="mono">${esc(fmtTime(s.updatedAt))}</td>
+      <td><span class="badge ${pub ? 'pub' : ''}"><span class="dot"></span>${pub ? '已发布' : '未发布'}</span></td>
+      <td class="actions">
+        <span class="btn-group">
+          <button onclick="editScene('${esc(s.id)}')">编辑 JSON</button>
+          <button class="primary" onclick="publishSceneById('${esc(s.id)}')">发布</button>
+          <button class="danger" onclick="deleteScene('${esc(s.id)}')">删除</button>
+        </span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+$('#globalSearch').addEventListener('input', () => { renderSceneTable(); renderServices(); renderBatchList(); });
+
+/* ---------------- 服务发布（注册表视图） ---------------- */
+const TYPE_NAMES = { geojson: 'GeoJSON', tiles: 'XYZ 瓦片', tileset: '3D Tiles', glb: 'GLB' };
+const GROUPS = [
+  { key: 'geojson', title: '2D 数据服务（GeoJSON）' },
+  { key: 'tiles', title: '瓦片服务（XYZ）' },
+  { key: 'tileset', title: '3D 服务（3D Tiles）' },
+  { key: 'glb', title: '三维模型（GLB）' },
+];
+
+function typeBadges(types) {
+  const badges = (types || []).map((t) => `<span class="tag ${t}">${TYPE_NAMES[t] || t}</span>`).join(' ');
+  return (types && types.length > 1 ? '<span class="tag mixed">混合</span> ' : '') + badges;
+}
+
+function svcRowHtml(a) {
+  const absolute = /^https?:\/\//i.test(a.url);
+  const isTemplate = a.url.includes('{z}');
+  return `
+    <div class="svc-row">
+      <span class="tag ${esc(a.kind)}">${esc(a.kind)}</span>
+      <span class="url" title="点击复制" onclick="copyText('${esc(a.url)}')">${esc(a.url)}</span>
+      <span class="name">${esc(a.name || '')}</span>
+      <button onclick="copyText('${esc(a.url)}')">复制</button>
+      ${!absolute && !isTemplate ? `<a href="${esc(a.url)}" target="_blank"><button>打开</button></a>` : ''}
+    </div>`;
+}
+
+function renderServices() {
+  const box = $('#serviceList');
+  const kw = ($('#globalSearch').value || '').trim().toLowerCase();
+  const list = services.filter((s) => !kw || s.slug.toLowerCase().includes(kw) || (s.sceneName || '').toLowerCase().includes(kw) || (s.sceneId || '').toLowerCase().includes(kw));
+  if (!list.length) {
+    box.innerHTML = `<div class="card"><div class="card-bd"><div class="empty">${kw ? '没有匹配的服务' : '暂无服务，可通过上方批量发布或场景管理发布'}</div></div></div>`;
+    return;
+  }
+  box.innerHTML = list.map((s) => {
+    const hasLocalTileset = (s.artifacts || []).some((a) => a.kind === 'tileset' && !a.url.includes('{z}') && !/^https?:/i.test(a.url));
+    return `
+    <div class="svc-card" id="svc-${esc(s.slug)}">
+      <div class="svc-card-hd">
+        ${typeBadges(s.types)}
+        <span class="name">${esc(s.sceneName || s.slug)}</span>
+        <span class="mono">${esc(s.slug)}</span>
+        <span class="spacer"></span>
+        <span class="meta">发布 ${esc(fmtTime(s.publishedAt))} · 更新 ${esc(fmtTime(s.updatedAt))}</span>
+        ${hasLocalTileset ? `<a href="/preview/3dtiles/${esc(s.slug)}" target="_blank"><button>预览</button></a>` : ''}
+        <span class="btn-group">
+          <button onclick="republishService('${esc(s.slug)}')">重新发布</button>
+          <button class="danger" onclick="deleteService('${esc(s.slug)}')">删除服务</button>
+        </span>
+      </div>
+      <div class="svc-card-bd">
+        ${GROUPS.map((g) => {
+          const items = (s.artifacts || []).filter((a) => a.kind === g.key);
+          if (!items.length) return '';
+          return `<div class="svc-group"><div class="svc-group-title">${esc(g.title)} <span class="cnt">（${items.length}）</span></div>${items.map(svcRowHtml).join('')}</div>`;
+        }).join('') || '<div class="empty">无产物</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function republishService(slug) {
+  const entry = serviceBySlug[slug];
+  if (!entry) return;
+  try {
+    if (entry.assetId) {
+      await api('/api/services/publish-asset', jsonOpts('POST', { assetId: entry.assetId }));
+    } else if (entry.sceneId) {
+      await api(`/api/scenes/${encodeURIComponent(entry.sceneId)}/publish`, { method: 'POST' });
+    } else {
+      toast('该服务没有可重新发布的来源（场景已删除且非资产直发）', true);
+      return;
+    }
+    toast(`已重新发布：${slug}`);
+    await loadServices();
+    renderSceneTable();
+    renderOverviewRecent();
+    renderBatchList();
+  } catch (err) { toast(err.message, true); }
+}
+
+async function deleteService(slug) {
+  if (!confirm(`确认删除服务 ${slug}？\n（仅删除发布目录与注册表条目，场景源数据不受影响）`)) return;
+  try {
+    await api(`/api/services/${encodeURIComponent(slug)}`, { method: 'DELETE' });
+    toast('服务已删除');
+    await loadServices();
+    renderSceneTable();
+    renderOverviewRecent();
+    renderBatchList();
+  } catch (err) { toast(err.message, true); }
+}
+
+/* ---------------- 批量发布 ---------------- */
+function renderBatchList() {
+  const box = $('#batchList');
+  const kw = ($('#globalSearch').value || '').trim().toLowerCase();
+  const rows = scenes.filter((s) => !kw || s.name.toLowerCase().includes(kw) || String(s.id).toLowerCase().includes(kw));
+  if (!rows.length) { box.innerHTML = `<div class="empty">${kw ? '没有匹配的场景' : '暂无场景'}</div>`; return; }
+  box.innerHTML = rows.map((s) => `
+    <label class="batch-item">
+      <input type="checkbox" class="batch-check" value="${esc(s.id)}" />
+      <b style="color:var(--text-strong)">${esc(s.name)}</b>
+      <span class="mono">${esc(s.id)}</span>
+      <span style="flex:1"></span>
+      <span class="badge ${serviceByScene[s.id] ? 'pub' : ''}"><span class="dot"></span>${serviceByScene[s.id] ? '已发布' : '未发布'}</span>
+    </label>`).join('');
+  updateBatchSummary();
+}
+
+function updateBatchSummary() {
+  const n = document.querySelectorAll('.batch-check:checked').length;
+  $('#batchSummary').textContent = `已选 ${n} / ${scenes.length} 个场景`;
+}
+
+document.addEventListener('change', (e) => {
+  if (e.target.classList && e.target.classList.contains('batch-check')) updateBatchSummary();
+});
+
+function toggleAllBatch() {
+  const checks = [...document.querySelectorAll('.batch-check')];
+  const allChecked = checks.length > 0 && checks.every((c) => c.checked);
+  checks.forEach((c) => (c.checked = !allChecked));
+  updateBatchSummary();
+}
+
+async function publishBatch() {
+  const ids = [...document.querySelectorAll('.batch-check:checked')].map((c) => c.value);
+  if (!ids.length) { toast('请先勾选要发布的场景', true); return; }
+  $('#batchResult').textContent = '批量发布中…';
+  try {
+    const r = await api('/api/scenes/publish-batch', jsonOpts('POST', { ids }));
+    const lines = r.results.map((x) => {
+      const s = scenes.find((sc) => sc.id === x.id);
+      return x.ok
+        ? `<span class="ok">✓ ${esc(s ? s.name : x.id)} → ${esc(x.slug)}</span>`
+        : `<span class="fail">✗ ${esc(s ? s.name : x.id)}：${esc(x.error)}</span>`;
+    });
+    $('#batchResult').innerHTML = `批量发布完成：<b class="ok">成功 ${r.published}</b> / <b class="fail">失败 ${r.failed}</b><br/>` + lines.join('<br/>');
+    toast(`批量发布完成：成功 ${r.published}，失败 ${r.failed}`, r.failed > 0);
+    await loadScenes();
+    await loadServices();
+    renderOverviewRecent();
+  } catch (err) {
+    $('#batchResult').textContent = '';
+    toast(err.message, true);
+  }
+}
+
+/* ---------------- 场景编辑 ---------------- */
+function openCreate() {
+  editing = null;
+  $('#editingId').textContent = '';
+  $('#editorTitle').textContent = '新建场景';
+  $('#editName').value = '';
+  $('#editDesc').value = '';
+  $('#editJson').value = JSON.stringify({
+    version: 1,
+    name: '新场景',
+    description: '',
+    camera: { lon: 116.391, lat: 39.907, height: 2000, heading: 0, pitch: -45, roll: 0 },
+    layers: [],
+  }, null, 2);
+  showPage('editor');
+}
+
+async function editScene(id) {
+  try {
+    const doc = await api(`/api/scenes/${encodeURIComponent(id)}`);
+    editing = id;
+    $('#editingId').textContent = '· ' + id;
+    $('#editorTitle').textContent = '编辑场景';
+    $('#editName').value = doc.name || '';
+    $('#editDesc').value = doc.description || '';
+    $('#editJson').value = JSON.stringify(doc, null, 2);
+    showPage('editor');
+  } catch (err) { toast(err.message, true); }
+}
+
+function formatJson() {
+  try { $('#editJson').value = JSON.stringify(JSON.parse($('#editJson').value), null, 2); }
+  catch (err) { toast('JSON 解析失败：' + err.message, true); }
+}
+
+function sampleJson() {
+  let doc;
+  try { doc = JSON.parse($('#editJson').value || '{}'); } catch { doc = {}; }
+  doc.version = doc.version || 1;
+  doc.name = doc.name || $('#editName').value || '新场景';
+  doc.camera = doc.camera || { lon: 116.391, lat: 39.907, height: 2000, heading: 0, pitch: -45, roll: 0 };
+  doc.layers = doc.layers || [];
+  doc.layers.push({
+    id: 'l-geojson-' + Math.random().toString(36).slice(2, 6),
+    name: '示例 GeoJSON 图层',
+    type: 'geojson',
+    source: { kind: 'inline' },
+    style: { color: '#ff0000', width: 2, opacity: 0.9, visibility: true },
+    features: {
+      type: 'FeatureCollection',
+      features: [
+        { type: 'Feature', properties: { name: '示例点' }, geometry: { type: 'Point', coordinates: [116.391, 39.907, 10] } },
+        { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [[[116.38, 39.9], [116.4, 39.9], [116.4, 39.92], [116.38, 39.9]]] } },
+      ],
+    },
+  });
+  $('#editJson').value = JSON.stringify(doc, null, 2);
+  toast('已追加示例 GeoJSON 图层');
+}
+
+async function saveScene() {
+  let doc;
+  try { doc = JSON.parse($('#editJson').value || '{}'); }
+  catch (err) { toast('JSON 解析失败：' + err.message, true); return; }
+  doc.name = $('#editName').value.trim() || doc.name;
+  doc.description = $('#editDesc').value.trim() || undefined;
+  if (!doc.name) { toast('请填写场景名称', true); return; }
+  try {
+    if (editing) {
+      await api(`/api/scenes/${encodeURIComponent(editing)}`, jsonOpts('PUT', doc));
+      toast('场景已保存');
+    } else {
+      const created = await api('/api/scenes', jsonOpts('POST', doc));
+      editing = created.id;
+      $('#editingId').textContent = '· ' + created.id;
+      $('#editorTitle').textContent = '编辑场景';
+      toast('场景已创建：' + created.id);
+    }
+    await loadScenes();
+    await loadServices();
+    renderBatchList();
+  } catch (err) { toast(err.message, true); }
+}
+
+async function deleteScene(id) {
+  const s = scenes.find((x) => x.id === id);
+  if (!confirm(`确认删除场景「${s ? s.name : id}」？\n（删除场景文档；已发布服务保留，可在服务发布页删除）`)) return;
+  try {
+    await api(`/api/scenes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    toast('场景已删除');
+    if (editing === id) { editing = null; showPage('scenes'); }
+    await loadScenes();
+    renderBatchList();
+  } catch (err) { toast(err.message, true); }
+}
+
+async function publishSceneById(id) {
+  try {
+    const manifest = await api(`/api/scenes/${encodeURIComponent(id)}/publish`, { method: 'POST' });
+    toast(`发布成功：/published/${manifest.slug}/`);
+    await loadScenes();
+    await loadServices();
+    renderOverviewRecent();
+    renderBatchList();
+    showPage('services');
+    locateService(manifest.slug);
+  } catch (err) { toast(err.message, true); }
+}
+
+async function publishEditing() {
+  if (!editing) { toast('请先保存场景（新建场景保存后即可发布）', true); return; }
+  await saveScene();
+  if (editing) publishSceneById(editing);
+}
+
+/* ---------------- 资产管理 ---------------- */
+async function uploadAsset() {
+  const input = $('#uploadFile');
+  if (!input.files || !input.files[0]) { toast('请选择要上传的文件', true); return; }
+  const file = input.files[0];
+  const fd = new FormData();
+  fd.append('file', file, file.name);
+  $('#uploadResult').innerHTML = `<div class="kv">上传中：${esc(file.name)}（${fmtBytes(file.size)}）…</div>`;
+  try {
+    const r = await api('/api/assets', { method: 'POST', body: fd });
+    const isZip = /\.zip$/i.test(r.filename || file.name);
+    $('#uploadResult').innerHTML = `
+      <div class="svc-row" style="max-width:680px">
+        <span class="tag ${isZip ? 'tileset' : 'glb'}">${isZip ? 'zip' : '资产'}</span>
+        <span class="url" onclick="copyText('${esc(r.url)}')">${esc(r.url)}</span>
+        <span class="name">${fmtBytes(r.size)}</span>
+        <button onclick="copyText('${esc(r.url)}')">复制</button>
+      </div>
+      <div class="kv">assetId：<b class="mono">${esc(r.assetId)}</b>
+        ${isZip ? '· 若为 3D Tiles 数据集（含 tileset.json），可调用 POST /api/services/publish-asset 直发为服务' : ''}
+      </div>`;
+    toast('上传成功');
+    input.value = '';
+    await loadAssets();
+  } catch (err) {
+    $('#uploadResult').innerHTML = `<div class="kv" style="color:var(--danger)">上传失败：${esc(err.message)}</div>`;
+  }
+}
+
+function renderAssetTable() {
+  $('#assetStat').textContent = `共 ${assets.length} 个文件 · ${fmtBytes(assets.reduce((s, a) => s + (a.size || 0), 0))}`;
+  const tbody = $('#assetRows');
+  if (!assets.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无资产</td></tr>'; return; }
+  tbody.innerHTML = assets.map((a) => {
+    const ext = (a.filename.split('.').pop() || '').toLowerCase();
+    const kindCls = ext === 'zip' ? 'tileset' : (ext === 'glb' || ext === 'gltf') ? 'glb' : 'geojson';
+    return `
+    <tr>
+      <td><b style="color:var(--text-strong)">${esc(a.filename)}</b></td>
+      <td><span class="tag ${kindCls}">${esc(ext || 'dat')}</span></td>
+      <td class="mono">${fmtBytes(a.size)}</td>
+      <td class="mono">${esc(fmtTime(a.updatedAt))}</td>
+      <td><span class="svc-row" style="margin:0;padding:4px 8px"><span class="url" onclick="copyText('${esc(a.url)}')">${esc(a.url)}</span></span></td>
+      <td class="actions">
+        <span class="btn-group">
+          <button onclick="copyText('${esc(a.url)}')">复制</button>
+          <button class="danger" onclick="deleteAsset('${esc(a.assetId)}')">删除</button>
+        </span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteAsset(assetId) {
+  if (!confirm('确认删除该资产？\n（不影响场景文档；引用该资产的图层与服务将失效）')) return;
+  try {
+    await api(`/api/assets/${encodeURIComponent(assetId)}`, { method: 'DELETE' });
+    toast('资产已删除');
+    await loadAssets();
+  } catch (err) { toast(err.message, true); }
+}
+
+/* ---------------- 查看弹窗（未发布场景 / 服务地址） ---------------- */
+function openServiceDetail(slug) {
+  const s = serviceBySlug[slug];
+  if (!s) { toast('服务不存在', true); return; }
+  $('#modalTitle').textContent = `服务地址 · ${s.sceneName || s.slug}`;
+  const groupsHtml = GROUPS.map((g) => {
+    const items = (s.artifacts || []).filter((a) => a.kind === g.key);
+    if (!items.length) return '';
+    return `<div class="svc-group"><div class="svc-group-title">${esc(g.title)} <span class="cnt">（${items.length}）</span></div>${items.map(svcRowHtml).join('')}</div>`;
+  }).join('');
+  $('#modalBody').innerHTML = `
+    <div class="kv" style="margin-bottom:12px">发布目录 <b>/published/${esc(s.slug)}/</b> · 更新 <b>${esc(fmtTime(s.updatedAt))}</b>
+      ${s.types.includes('tileset') ? ` · <a href="/preview/3dtiles/${esc(s.slug)}" target="_blank">3D Tiles 预览</a>` : ''}</div>
+    ${groupsHtml || '<div class="empty">无产物</div>'}`;
+  $('#modalMask').classList.add('show');
+}
+
+async function viewScene(id) {
+  if (serviceByScene[id]) { openServiceDetail(serviceByScene[id].slug); return; }
+  try {
+    const doc = await api(`/api/scenes/${encodeURIComponent(id)}`);
+    $('#modalTitle').textContent = `场景详情 · ${doc.name || id}`;
+    $('#modalBody').innerHTML = `
+      <div class="kv" style="margin-bottom:10px"><b>${esc(doc.name)}</b> ${doc.description ? '· ' + esc(doc.description) : ''} · ${doc.layers ? doc.layers.length : 0} 个图层 ·
+        状态 <span class="badge"><span class="dot"></span>未发布</span></div>
+      <pre style="background:#f7f9fc;border:1px solid var(--line-soft);border-radius:4px;padding:12px;max-height:400px;overflow:auto;font-size:12px">${esc(JSON.stringify(doc, null, 2))}</pre>`;
+    $('#modalMask').classList.add('show');
+  } catch (err) { toast(err.message, true); }
+}
+
+function closeModal() { $('#modalMask').classList.remove('show'); }
+$('#modalMask').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+
+/* ---------------- 启动 ---------------- */
+refreshAll();
+setInterval(loadHealth, 15000);
+</script>
+</body>
+</html>

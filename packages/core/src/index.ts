@@ -201,3 +201,10 @@ export {
   type CesiumKmlLayerOptions,
 } from "./cesium-kml";
 export { localFileName, uniqueImportedLayerName } from "./file-name";
+export * from "./dock/layout-model";
+export * from "./editing/draw-geometry";
+export * from "./editing/geojson-edit";
+export {
+  DOCK_COMPONENT_REGISTRY,
+  useDockStore,
+} from "./dock/dock-store";

@@ -11,6 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@geolibre/ui";
+import { RibbonMenuSection } from "./RibbonSection";
 import {
   BookOpen,
   Bookmark,
@@ -55,6 +56,8 @@ const EXPORT_IMAGE_DENIED_ID = "project-menu-export-image-denied";
 
 interface ProjectMenuProps {
   chrome: ToolbarChrome;
+  /** Ribbon 命令分发器（服务端缓存/发布并入本菜单） */
+  runRibbon?: (id: string) => void;
   collaborationEnabled: boolean;
   /**
    * Availability of the configured share host. `disabled` hides Share and the
@@ -85,6 +88,7 @@ interface ProjectMenuProps {
 /** The Project menu: new/open/save/share, recent projects, print, and storymap. */
 export function ProjectMenu({
   chrome,
+  runRibbon,
   collaborationEnabled,
   shareHostStatus,
   onNewProject,
@@ -446,6 +450,13 @@ export function ProjectMenu({
         {show("project.printLayout") && (
           <CapabilityNotice id={EXPORT_IMAGE_DENIED_ID} capability={exportImageCapability} />
         )}
+      {runRibbon ? (
+        <RibbonMenuSection
+          label="服务端 · 发布"
+          ids={["cache.services", "cache.host-dir", "publish.oneclick"]}
+          run={runRibbon}
+        />
+      ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
