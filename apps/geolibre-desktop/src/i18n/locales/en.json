@@ -8158,6 +8158,26 @@
       "toggleDock": "Dock Editor Layout"
     },
     "pendingTitle": "{{label}} (in development — coming in a later phase)",
-    "pendingBadge": "WIP"
+    "pendingBadge": "WIP",
+    "hints": {
+      "openProjectPackage": "Open project package (scene + cache + assets)",
+      "openFromServerHint": "One-click publish in reverse: pull a hosted scene into the editor",
+      "exportProjectPackage": "Export project package (scene + cache + assets)",
+      "xyzDirLocal": "Render a local z/x/y tile tree without uploading (desktop)",
+      "nativeDirPicker": "Native directory picker + bounded scan + lazy template: no file-count cap",
+      "hostRecommended": "Recommended path for GB-scale caches",
+      "reprojectionHint": "proj4 vector reprojection, pure client-side",
+      "optimizerHint": "Douglas-Peucker simplify + coordinate precision truncation into a new layer",
+      "servicesHint": "Connect to the GIS server: services / scenes / hosted directories",
+      "hostPublish": "Publish GB-scale caches without uploading",
+      "publishHint": "Publish the current project as a server scene package",
+      "columbusHint": "Cesium engine scene-mode morph",
+      "resetLayoutHint": "Restore default Dock panel layout (layers / attributes / tools / query / output)",
+      "toggleDockHint": "Enable/disable Dock panels on the map (GIS editor layout)",
+      "rectSelectHint": "Drag a rectangle to select features in range",
+      "vertexEditHint": "Start/stop geometry editing on the selected layer",
+      "pickHint": "Click a map feature to select it",
+      "themeHint": "Dark / light"
+    }
   }
 }

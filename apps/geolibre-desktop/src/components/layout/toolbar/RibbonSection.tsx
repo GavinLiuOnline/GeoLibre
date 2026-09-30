@@ -39,7 +39,7 @@ export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
           title={
             cmd.pending
               ? t("ribbon.pendingTitle", { label: t(cmd.label as ParseKeys) })
-              : ((cmd.hint ?? t(cmd.label as ParseKeys)) as string)
+              : ((cmd.hint ? t(cmd.hint as ParseKeys) : t(cmd.label as ParseKeys)) as string)
           }
           data-ribbon-command={cmd.id}
           disabled={Boolean(cmd.pending)}

@@ -8063,6 +8063,26 @@
       "toggleDock": "Dock 编辑器布局"
     },
     "pendingTitle": "{{label}}（功能开发中，后续阶段接入）",
-    "pendingBadge": "开发中"
+    "pendingBadge": "开发中",
+    "hints": {
+      "openProjectPackage": "打开工程包（场景 + 缓存 + 资产）",
+      "openFromServerHint": "一键发布的反向：拉取托管场景到编辑器",
+      "exportProjectPackage": "导出工程包（场景 + 缓存 + 资产）",
+      "xyzDirLocal": "本机 z/x/y 瓦片树免上传上屏（桌面端）",
+      "nativeDirPicker": "原生目录选择 + 有界扫描 + 模板懒加载：无文件数上限",
+      "hostRecommended": "GB 级缓存推荐路径",
+      "reprojectionHint": "proj4 矢量重投影，纯客户端",
+      "optimizerHint": "DP 简化 + 坐标精度截断，生成新图层",
+      "servicesHint": "连接 GIS 服务端：服务/场景/托管目录",
+      "hostPublish": "GB 级缓存免上传发布",
+      "publishHint": "当前工程发布为服务端场景包",
+      "columbusHint": "Cesium 引擎形态切换",
+      "resetLayoutHint": "恢复 Dock 面板默认布局（图层 / 属性 / 工具 / 查询 / 输出窗）",
+      "toggleDockHint": "在地图上启用/关闭 Dock 面板（GIS 编辑器布局）",
+      "rectSelectHint": "拖拽矩形选中范围内要素",
+      "vertexEditHint": "对选中图层开启/结束几何编辑",
+      "pickHint": "点击地图要素写入选择",
+      "themeHint": "深色/亮色"
+    }
   }
 }
