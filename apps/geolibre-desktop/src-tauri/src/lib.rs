@@ -431,6 +431,7 @@ pub fn run() {
             take_pending_project_paths,
             allow_raster_asset,
             read_local_file,
+            read_local_dir,
             read_project_file,
             read_shapefile_siblings,
             resolve_url_redirect,
@@ -698,6 +699,38 @@ fn read_local_file(path: String) -> Result<tauri::ipc::Response, String> {
     fs::read(&path)
         .map(tauri::ipc::Response::new)
         .map_err(|error| format!("Could not read local file: {error}"))
+}
+
+/// List a directory's immediate entries so local tile-cache scans can walk a
+/// picked XYZ tree even when the `fs` plugin's runtime scope denies a
+/// descendant (a hidden directory component such as `.local-cache-subset` can
+/// fall outside the dialog grant and reject `readDir` with "forbidden path").
+/// Mirrors `read_local_file`: the path is validated here by
+/// `is_safe_absolute_path` (absolute, non-UNC, no `..` traversal) so the
+/// command cannot probe relative or traversing paths. Returned as JSON
+/// (`name` + `is_dir`) because a listing is small and structured.
+#[derive(serde::Serialize)]
+struct LocalDirEntry {
+    name: String,
+    is_dir: bool,
+}
+
+#[tauri::command]
+fn read_local_dir(path: String) -> Result<String, String> {
+    if !is_safe_absolute_path(&path) {
+        return Err(format!(
+            "Refusing to list \"{path}\": not an absolute local directory path"
+        ));
+    }
+    let mut entries: Vec<LocalDirEntry> = Vec::new();
+    for entry in fs::read_dir(&path).map_err(|error| format!("Could not read local dir: {error}"))? {
+        let entry = entry.map_err(|error| format!("Could not read local dir: {error}"))?;
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
+        entries.push(LocalDirEntry { name, is_dir });
+    }
+    serde_json::to_string(&entries)
+        .map_err(|error| format!("Could not serialize dir listing: {error}"))
 }
 
 /// Pick images without adding them to Tauri's filesystem or asset scopes. The

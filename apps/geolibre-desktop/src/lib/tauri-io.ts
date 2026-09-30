@@ -250,7 +250,30 @@ export interface LocalDirectoryEntry {
  */
 export async function listDirectory(path: string): Promise<LocalDirectoryEntry[]> {
   if (!isTauri()) return [];
-  const entries = await readDir(path);
+  let entries;
+  try {
+    entries = await readDir(path);
+  } catch (error) {
+    if (!isTauri()) throw error;
+    // Fall back to the `read_local_dir` Tauri command when the `fs` plugin
+    // denies the path — the same trust model as `readLocalFileBytes`. XYZ-cache
+    // scans walk the z/x/y subtree of a directory the user explicitly picked,
+    // but a hidden component (e.g. `.local-cache-subset`) can fall outside the
+    // dialog's runtime scope and reject `readDir` with "forbidden path". The
+    // command validates the path on the Rust side (absolute, no `..` traversal),
+    // so routing the listing through it cannot widen what is listable.
+    const raw = await invoke<string>("read_local_dir", { path });
+    const parsed = JSON.parse(raw) as { name: string; is_dir: boolean }[];
+    // Join with the parent's own separator style so a Windows path stays
+    // all-backslash (readDir returns names only, no path).
+    const sep = path.includes("\\") ? "\\" : "/";
+    const base = /[/\\]$/.test(path) ? path : `${path}${sep}`;
+    return parsed.map((entry) => ({
+      name: entry.name,
+      path: `${base}${entry.name}`,
+      isDirectory: entry.is_dir,
+    }));
+  }
   // Join with the parent's own separator style so a Windows path stays
   // all-backslash (readDir returns names only, no path).
   const sep = path.includes("\\") ? "\\" : "/";
