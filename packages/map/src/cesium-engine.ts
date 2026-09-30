@@ -846,6 +846,13 @@ export class CesiumEngine implements MapEngine {
     return this.drawingDispose;
   }
 
+  morphTo(mode: "2d" | "3d" | "columbus"): void {
+    const viewer = this.live();
+    if (!viewer) return;
+    if (mode === "2d") viewer.scene.morphTo2D(1.2);
+    else if (mode === "columbus") viewer.scene.morphToColumbusView(1.2);
+    else viewer.scene.morphTo3D(1.2);
+  }
   getContainer(): HTMLElement {
     return (this.live()?.container as HTMLElement | undefined) ?? document.createElement("div");
   }

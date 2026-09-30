@@ -1385,6 +1385,7 @@ export function TopToolbar({
   const [scenesOpen, setScenesOpen] = useState(false);
   const [rectSelectArmed, setRectSelectArmed] = useState(false);
   const pickHandlerRef = useRef<(() => void) | null>(null);
+  const columbusPendingRef = useRef(false);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
   // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
   // 完成后再打开生成对话框（bbox 随 prop 传入）。
@@ -2336,9 +2337,25 @@ export function TopToolbar({
         ribbonPending("该工具将在后续 PR 接入");
       },
       setView: (mode) => {
-        if (mode === "3D") setPrimaryRenderer("cesium");
-        else if (mode === "2D") setPrimaryRenderer("maplibre");
-        else ribbonPending("哥伦布视图");
+        if (mode === "3D") {
+          setPrimaryRenderer("cesium");
+          return;
+        }
+        if (mode === "2D") {
+          setPrimaryRenderer("maplibre");
+          return;
+        }
+        // 哥伦布视图：Cesium 场景形态 morph；当前是平面渲染器时先切到
+        // Cesium，挂起待挂载完成后自动 morph 一次
+        columbusPendingRef.current = true;
+        if (mapControllerRef.current?.kind === "cesium") {
+          mapControllerRef.current.morphTo?.("columbus");
+          columbusPendingRef.current = false;
+          showNotice("已切换到哥伦布视图（Columbus）", 4000);
+        } else {
+          setPrimaryRenderer("cesium");
+          showNotice("正在切换到 Cesium 引擎，加载完成后自动进入哥伦布视图", 5000);
+        }
       },
       cycleBasemap: () => {
         const order = [
@@ -2557,6 +2574,15 @@ export function TopToolbar({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // 哥伦布视图：平面渲染器 → Cesium 挂载完成后执行挂起的 morph
+  useEffect(() => {
+    if (!cesiumPrimary || mapReadyGeneration === 0) return;
+    if (!columbusPendingRef.current) return;
+    columbusPendingRef.current = false;
+    mapControllerRef.current?.morphTo?.("columbus");
+    showNotice("已切换到哥伦布视图（Columbus）", 4000);
+  }, [cesiumPrimary, mapReadyGeneration, mapControllerRef, showNotice]);
   return (
     <>
       {ribbonNotice || regionHint ? (

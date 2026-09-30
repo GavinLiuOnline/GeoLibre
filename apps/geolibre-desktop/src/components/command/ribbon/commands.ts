@@ -198,7 +198,7 @@ const dataGroups: RibbonGroup[] = [
     label: '本地缓存',
     commands: [
       { id: 'data.import-xyz-dir', tab: 'data', group: 'cache-local', label: 'XYZ 缓存目录…', icon: 'grid', primary: true, hint: '本机 z/x/y 瓦片树免上传上屏（桌面端）', run: (c) => c.pickLocalCacheDir('xyz') },
-      { id: 'data.import-3dtiles-dir', tab: 'data', group: 'cache-local', label: '3D Tiles 缓存目录…', icon: 'cube', primary: true, run: (c) => c.pickLocalCacheDir('3dtiles') , pending: true },
+      { id: 'data.import-3dtiles-dir', tab: 'data', group: 'cache-local', label: '3D Tiles 缓存目录…', icon: 'cube', primary: true, run: (c) => c.pickLocalCacheDir('3dtiles') },
       {
         id: 'data.import-desktop-native',
         tab: 'data',
@@ -211,7 +211,7 @@ const dataGroups: RibbonGroup[] = [
         run: (c) => c.pickDesktopNativeDir?.(),
       },
       { id: 'data.import-url', tab: 'data', group: 'cache-local', label: 'XYZ 缓存（URL / file://）…', icon: 'globe', run: (c) => c.openUrlImportDialog() },
-      { id: 'data.host-directory', tab: 'data', group: 'cache-local', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', hint: 'GB 级缓存推荐路径', run: (c) => c.openHostDirectoryDialog() , pending: true },
+      { id: 'data.host-directory', tab: 'data', group: 'cache-local', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', hint: 'GB 级缓存推荐路径', run: (c) => c.openHostDirectoryDialog() },
     ],
   },
   {
@@ -264,7 +264,7 @@ const viewGroups: RibbonGroup[] = [
     commands: [
       { id: 'view.3d', tab: 'view', group: 'view-mode', label: '3D 视图', icon: 'cube', primary: true, run: (c) => c.setView('3D') },
       { id: 'view.2d', tab: 'view', group: 'view-mode', label: '2D 视图', icon: 'map', primary: true, run: (c) => c.setView('2D') },
-      { id: 'view.cv', tab: 'view', group: 'view-mode', label: 'CV（哥伦布）', icon: 'grid', run: (c) => c.setView('Columbus') , pending: true },
+      { id: 'view.cv', tab: 'view', group: 'view-mode', label: 'CV（哥伦布）', icon: 'grid', hint: 'Cesium 引擎形态切换', run: (c) => c.setView('Columbus') },
     ],
   },
   {
