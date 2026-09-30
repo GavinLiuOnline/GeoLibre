@@ -8,6 +8,9 @@
 */
 import { DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@geolibre/ui";
 
+import { useTranslation } from "react-i18next";
+import type { ParseKeys } from "i18next";
+
 import { findCommand, ribbonIconSvg } from "../../command/ribbon/commands";
 
 export interface RibbonSectionProps {
@@ -20,6 +23,7 @@ export interface RibbonSectionProps {
 }
 
 export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
+  const { t } = useTranslation();
   const commands = ids
     .map((id) => findCommand(id))
     .filter((cmd): cmd is NonNullable<ReturnType<typeof findCommand>> => Boolean(cmd));
@@ -32,7 +36,11 @@ export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
       {commands.map((cmd) => (
         <DropdownMenuItem
           key={cmd.id}
-          title={cmd.pending ? `${cmd.hint ?? cmd.label}（功能开发中，后续阶段接入）` : (cmd.hint ?? cmd.label)}
+          title={
+            cmd.pending
+              ? t("ribbon.pendingTitle", { label: t(cmd.label as ParseKeys) })
+              : ((cmd.hint ?? t(cmd.label as ParseKeys)) as string)
+          }
           data-ribbon-command={cmd.id}
           disabled={Boolean(cmd.pending)}
           onSelect={() => {
@@ -48,9 +56,9 @@ export function RibbonMenuSection({ label, ids, run }: RibbonSectionProps) {
             className="me-2 h-3.5 w-3.5 shrink-0 [&>svg]:h-3.5 [&>svg]:w-3.5"
             dangerouslySetInnerHTML={{ __html: ribbonIconSvg(cmd.icon) }}
           />
-          <span className="flex-1">{cmd.label}</span>
+          <span className="flex-1">{t(cmd.label as ParseKeys)}</span>
           {cmd.pending ? (
-            <span className="text-[10px] leading-none text-muted-foreground">开发中</span>
+            <span className="text-[10px] leading-none text-muted-foreground">{t("ribbon.pendingBadge")}</span>
           ) : null}
           {cmd.shortcut ? (
             <span className="ms-4 text-xs text-muted-foreground">{cmd.shortcut}</span>
