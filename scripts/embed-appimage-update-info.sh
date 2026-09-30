@@ -42,9 +42,18 @@ appimage="${1:?Pass the path to the .AppImage}"
 owner="${REPO%%/*}"
 name="${REPO##*/}"
 
-# The tag carries the version the bundler stamped into the file name.
-version="${TAG#v}"
+# Prefer the version the bundler actually stamped into the file name: the tag
+# and the bundle can drift apart on trial runs (tauri-action's appVersion comes
+# from Cargo.toml while the file name comes from tauri.conf.json — a v0.0.1 tag
+# against a "GeoLibre Desktop_3.0.0_amd64.AppImage" bailed here). Fall back to
+# the tag for callers whose file name carries no version segment.
 base="$(basename "$appimage")"
+version=""
+if [[ "$base" =~ _v?([0-9]+(\.[0-9]+)+)_ ]]; then
+  version="${BASH_REMATCH[1]}"
+else
+  version="${TAG#v}"
+fi
 
 # The update information has to match *every future* release, not just this one,
 # so the version in the file name becomes a glob. Rewriting it here (rather than

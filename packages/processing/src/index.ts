@@ -37,6 +37,7 @@ export {
   type RunModelOptions,
 } from "./runner";
 export { NETWORK_TOOLS, getNetworkTool, layerToSequencedPoints } from "./network-tools";
+export { simplifyPositions, simplifyRing } from "./douglas-peucker";
 export {
   STATISTICS_TOOLS,
   getStatisticsTool,

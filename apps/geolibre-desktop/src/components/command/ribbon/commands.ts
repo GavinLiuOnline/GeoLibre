@@ -169,17 +169,17 @@ const fileGroups: RibbonGroup[] = [
     id: 'scene',
     label: '场景',
     commands: [
-      { id: 'scene.new', tab: 'file', group: 'scene', label: '新建', icon: 'file', shortcut: 'Ctrl+N', primary: true, run: (c) => c.newScene() },
-      { id: 'package.import', tab: 'file', group: 'scene', label: '打开…', icon: 'package', primary: true, hint: '打开工程包（场景 + 缓存 + 资产）', run: (c) => c.openProjectPackage('import') },
-      { id: 'scene.open-server', tab: 'file', group: 'scene', label: '从服务端打开…', icon: 'cloud', run: (c) => c.openSceneListDialog() , pending: true },
+      { id: 'scene.new', tab: 'file', group: 'scene', label: 'ribbon.commands.new', icon: 'file', shortcut: 'Ctrl+N', primary: true, run: (c) => c.newScene() },
+      { id: 'package.import', tab: 'file', group: 'scene', label: 'ribbon.commands.open', icon: 'package', primary: true, hint: 'ribbon.hints.openProjectPackage', run: (c) => c.openProjectPackage('import') },
+      { id: 'scene.open-server', tab: 'file', group: 'scene', label: 'ribbon.commands.openFromServer', icon: 'cloud', hint: 'ribbon.hints.openFromServerHint', run: (c) => c.openSceneListDialog() },
     ],
   },
   {
     id: 'save',
     label: '保存',
     commands: [
-      { id: 'package.export', tab: 'file', group: 'save', label: '保存…', icon: 'upload', hint: '导出工程包（场景 + 缓存 + 资产）', run: (c) => c.openProjectPackage('export') },
-      { id: 'scene.save', tab: 'file', group: 'save', label: '保存到服务端', icon: 'save', shortcut: 'Ctrl+S', primary: true, run: (c) => { void c.saveToServer(); } },
+      { id: 'package.export', tab: 'file', group: 'save', label: 'ribbon.commands.save', icon: 'upload', hint: 'ribbon.hints.exportProjectPackage', run: (c) => c.openProjectPackage('export') },
+      { id: 'scene.save', tab: 'file', group: 'save', label: 'ribbon.commands.saveToServer', icon: 'save', shortcut: 'Ctrl+S', primary: true, run: (c) => { void c.saveToServer(); } },
     ],
   },
 ];
@@ -190,45 +190,45 @@ const dataGroups: RibbonGroup[] = [
     id: 'import',
     label: '导入',
     commands: [
-      { id: 'data.import', tab: 'data', group: 'import', label: '导入数据…', icon: 'import', primary: true, run: (c) => c.openDialog('import') },
+      { id: 'data.import', tab: 'data', group: 'import', label: 'ribbon.commands.importData', icon: 'import', primary: true, run: (c) => c.openDialog('import') },
     ],
   },
   {
     id: 'cache-local',
     label: '本地缓存',
     commands: [
-      { id: 'data.import-xyz-dir', tab: 'data', group: 'cache-local', label: 'XYZ 缓存目录…', icon: 'grid', primary: true, hint: '本机 z/x/y 瓦片树免上传上屏（桌面端）', run: (c) => c.pickLocalCacheDir('xyz') },
-      { id: 'data.import-3dtiles-dir', tab: 'data', group: 'cache-local', label: '3D Tiles 缓存目录…', icon: 'cube', primary: true, run: (c) => c.pickLocalCacheDir('3dtiles') , pending: true },
+      { id: 'data.import-xyz-dir', tab: 'data', group: 'cache-local', label: 'ribbon.commands.importXyzDir', icon: 'grid', primary: true, hint: 'ribbon.hints.xyzDirLocal', run: (c) => c.pickLocalCacheDir('xyz') },
+      { id: 'data.import-3dtiles-dir', tab: 'data', group: 'cache-local', label: 'ribbon.commands.import3dTilesDir', icon: 'cube', primary: true, run: (c) => c.pickLocalCacheDir('3dtiles') },
       {
         id: 'data.import-desktop-native',
         tab: 'data',
         group: 'cache-local',
-        label: '本机瓦片目录（桌面原生）',
+        label: 'ribbon.commands.importNativeTiles',
         icon: 'server',
         primary: true,
         electronOnly: true,
-        hint: '原生目录选择 + 有界扫描 + 模板懒加载：无文件数上限',
+        hint: 'ribbon.hints.nativeDirPicker',
         run: (c) => c.pickDesktopNativeDir?.(),
       },
-      { id: 'data.import-url', tab: 'data', group: 'cache-local', label: 'XYZ 缓存（URL / file://）…', icon: 'globe', run: (c) => c.openUrlImportDialog() },
-      { id: 'data.host-directory', tab: 'data', group: 'cache-local', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', hint: 'GB 级缓存推荐路径', run: (c) => c.openHostDirectoryDialog() , pending: true },
+      { id: 'data.import-url', tab: 'data', group: 'cache-local', label: 'ribbon.commands.importXyzUrl', icon: 'globe', run: (c) => c.openUrlImportDialog() },
+      { id: 'data.host-directory', tab: 'data', group: 'cache-local', label: 'ribbon.commands.hostDirectory', icon: 'cloud', hint: 'ribbon.hints.hostRecommended', run: (c) => c.openHostDirectoryDialog() },
     ],
   },
   {
     id: 'cache-generate',
     label: '生成缓存',
     commands: [
-      { id: 'data.gen-3d', tab: 'data', group: 'cache-generate', label: '三维模型 → 3D Tiles…', icon: 'cube', primary: true, run: (c) => c.openGenerateCache('3d') , pending: true },
-      { id: 'data.gen-2d', tab: 'data', group: 'cache-generate', label: '矢量 → XYZ 缓存…', icon: 'grid', primary: true, run: (c) => c.openGenerateCache('2d') },
-      { id: 'data.gen-region', tab: 'data', group: 'cache-generate', label: '框选区域 → XYZ…', icon: 'rect', run: (c) => c.openRegionCache() },
+      { id: 'data.gen-3d', tab: 'data', group: 'cache-generate', label: 'ribbon.commands.gen3d', icon: 'cube', primary: true, run: (c) => c.openGenerateCache('3d') , pending: true },
+      { id: 'data.gen-2d', tab: 'data', group: 'cache-generate', label: 'ribbon.commands.genVectorXyz', icon: 'grid', primary: true, run: (c) => c.openGenerateCache('2d') },
+      { id: 'data.gen-region', tab: 'data', group: 'cache-generate', label: 'ribbon.commands.genRegionXyz', icon: 'rect', run: (c) => c.openRegionCache() },
     ],
   },
   {
     id: 'transform',
     label: '配准 / 轻量化',
     commands: [
-      { id: 'data.reprojection', tab: 'data', group: 'transform', label: '坐标重投影…', icon: 'compress', hint: 'proj4 矢量重投影，纯客户端', run: (c) => c.openReprojectionDialog() },
-      { id: 'data.optimizer', tab: 'data', group: 'transform', label: '数据轻量化…', icon: 'compress', run: (c) => c.openDialog('optimizer') , pending: true },
+      { id: 'data.reprojection', tab: 'data', group: 'transform', label: 'ribbon.commands.reprojection', icon: 'compress', hint: 'ribbon.hints.reprojectionHint', run: (c) => c.openReprojectionDialog() },
+      { id: 'data.optimizer', tab: 'data', group: 'transform', label: 'ribbon.commands.optimizer', icon: 'compress', primary: true, hint: 'ribbon.hints.optimizerHint', run: (c) => c.openDialog('optimizer') },
     ],
   },
 ];
@@ -239,8 +239,8 @@ const cacheGroups: RibbonGroup[] = [
     id: 'services',
     label: '服务',
     commands: [
-      { id: 'cache.services', tab: 'cache', group: 'services', label: '服务管理…', icon: 'server', primary: true, hint: '连接 GIS 服务端：服务/场景/托管目录', run: (c) => c.openServiceListDialog() },
-      { id: 'cache.host-dir', tab: 'cache', group: 'services', label: '引用本机瓦片目录（服务端托管）…', icon: 'cloud', hint: 'GB 级缓存免上传发布', run: (c) => c.openHostDirectoryDialog() },
+      { id: 'cache.services', tab: 'cache', group: 'services', label: 'ribbon.commands.services', icon: 'server', primary: true, hint: 'ribbon.hints.servicesHint', run: (c) => c.openServiceListDialog() },
+      { id: 'cache.host-dir', tab: 'cache', group: 'services', label: 'ribbon.commands.hostDirectory', icon: 'cloud', hint: 'ribbon.hints.hostPublish', run: (c) => c.openHostDirectoryDialog() },
     ],
   },
 ];
@@ -251,7 +251,7 @@ const publishGroups: RibbonGroup[] = [
     id: 'publish',
     label: '发布',
     commands: [
-      { id: 'publish.oneclick', tab: 'publish', group: 'publish', label: '一键发布…', icon: 'send', primary: true, hint: '当前工程发布为服务端场景包', run: (c) => c.openDialog('publish') },
+      { id: 'publish.oneclick', tab: 'publish', group: 'publish', label: 'ribbon.commands.oneClickPublish', icon: 'send', primary: true, hint: 'ribbon.hints.publishHint', run: (c) => c.openDialog('publish') },
     ],
   },
 ];
@@ -262,17 +262,17 @@ const viewGroups: RibbonGroup[] = [
     id: 'view-mode',
     label: '视图模式',
     commands: [
-      { id: 'view.3d', tab: 'view', group: 'view-mode', label: '3D 视图', icon: 'cube', primary: true, run: (c) => c.setView('3D') },
-      { id: 'view.2d', tab: 'view', group: 'view-mode', label: '2D 视图', icon: 'map', primary: true, run: (c) => c.setView('2D') },
-      { id: 'view.cv', tab: 'view', group: 'view-mode', label: 'CV（哥伦布）', icon: 'grid', run: (c) => c.setView('Columbus') , pending: true },
+      { id: 'view.3d', tab: 'view', group: 'view-mode', label: 'ribbon.commands.view3d', icon: 'cube', primary: true, run: (c) => c.setView('3D') },
+      { id: 'view.2d', tab: 'view', group: 'view-mode', label: 'ribbon.commands.view2d', icon: 'map', primary: true, run: (c) => c.setView('2D') },
+      { id: 'view.cv', tab: 'view', group: 'view-mode', label: 'ribbon.commands.viewColumbus', icon: 'grid', hint: 'ribbon.hints.columbusHint', run: (c) => c.setView('Columbus') },
     ],
   },
   {
     id: 'basemap',
     label: '底图',
     commands: [
-      { id: 'view.basemap-cycle', tab: 'view', group: 'basemap', label: '切换底图', icon: 'globe', primary: true, run: (c) => c.cycleBasemap() },
-      { id: 'view.basemap-mgr', tab: 'view', group: 'basemap', label: '底图管理…', icon: 'layers', run: (c) => c.openBasemapDialog() },
+      { id: 'view.basemap-cycle', tab: 'view', group: 'basemap', label: 'ribbon.commands.cycleBasemap', icon: 'globe', primary: true, run: (c) => c.cycleBasemap() },
+      { id: 'view.basemap-mgr', tab: 'view', group: 'basemap', label: 'ribbon.commands.basemapManager', icon: 'layers', run: (c) => c.openBasemapDialog() },
     ],
   },
   {
@@ -283,18 +283,18 @@ const viewGroups: RibbonGroup[] = [
         id: 'view.reset-layout',
         tab: 'view',
         group: 'layout',
-        label: '重置默认布局',
+        label: 'ribbon.commands.resetLayout',
         icon: 'refresh',
-        hint: '恢复 Dock 面板默认布局（图层 / 属性 / 工具 / 查询 / 输出窗）',
+        hint: 'ribbon.hints.resetLayoutHint',
         run: (c) => c.resetLayout(),
       },
       {
         id: 'view.toggle-dock',
         tab: 'view',
         group: 'layout',
-        label: 'Dock 编辑器布局',
+        label: 'ribbon.commands.toggleDock',
         icon: 'layers',
-        hint: '在地图上启用/关闭 Dock 面板（GIS 编辑器布局）',
+        hint: 'ribbon.hints.toggleDockHint',
         run: (c) => c.toggleDockEditor(),
       },
     ],
@@ -307,27 +307,27 @@ const toolsGroups: RibbonGroup[] = [
     id: 'draw',
     label: '绘制',
     commands: [
-      { id: 'tool.draw-point', tab: 'tools', group: 'draw', label: '绘制点', icon: 'point', primary: true, run: (c) => c.setTool('draw-point') },
-      { id: 'tool.draw-line', tab: 'tools', group: 'draw', label: '绘制折线', icon: 'polyline', primary: true, run: (c) => c.setTool('draw-line') },
-      { id: 'tool.draw-polygon', tab: 'tools', group: 'draw', label: '绘制多边形', icon: 'polygon', primary: true, run: (c) => c.setTool('draw-polygon') },
-      { id: 'tool.rect-select', tab: 'tools', group: 'draw', label: '矩形框选', icon: 'rect', hint: '用于生成 XYZ 缓存', run: (c) => c.setTool('select-rect') , pending: true },
+      { id: 'tool.draw-point', tab: 'tools', group: 'draw', label: 'ribbon.commands.drawPoint', icon: 'point', primary: true, run: (c) => c.setTool('draw-point') },
+      { id: 'tool.draw-line', tab: 'tools', group: 'draw', label: 'ribbon.commands.drawLine', icon: 'polyline', primary: true, run: (c) => c.setTool('draw-line') },
+      { id: 'tool.draw-polygon', tab: 'tools', group: 'draw', label: 'ribbon.commands.drawPolygon', icon: 'polygon', primary: true, run: (c) => c.setTool('draw-polygon') },
+      { id: 'tool.rect-select', tab: 'tools', group: 'draw', label: 'ribbon.commands.rectSelect', icon: 'rect', hint: 'ribbon.hints.rectSelectHint', run: (c) => c.setTool('select-rect') },
     ],
   },
   {
     id: 'edit',
     label: '编辑',
     commands: [
-      { id: 'tool.vertex-edit', tab: 'tools', group: 'edit', label: '顶点编辑', icon: 'pin', primary: true, hint: '对选中图层开启/结束几何编辑', run: (c) => c.toggleVertexEdit() },
-      { id: 'tool.pick', tab: 'tools', group: 'edit', label: '拾取要素', icon: 'cursor', primary: true, run: (c) => c.setTool('pick') , pending: true },
-      { id: 'tool.pan', tab: 'tools', group: 'edit', label: '漫游', icon: 'hand', shortcut: 'Esc', primary: true, run: (c) => c.setTool('pan') },
+      { id: 'tool.vertex-edit', tab: 'tools', group: 'edit', label: 'ribbon.commands.vertexEdit', icon: 'pin', primary: true, hint: 'ribbon.hints.vertexEditHint', run: (c) => c.toggleVertexEdit() },
+      { id: 'tool.pick', tab: 'tools', group: 'edit', label: 'ribbon.commands.pickFeature', icon: 'cursor', primary: true, hint: 'ribbon.hints.pickHint', run: (c) => c.setTool('pick') },
+      { id: 'tool.pan', tab: 'tools', group: 'edit', label: 'ribbon.commands.pan', icon: 'hand', shortcut: 'Esc', primary: true, run: (c) => c.setTool('pan') },
     ],
   },
   {
     id: 'settings',
     label: '设置',
     commands: [
-      { id: 'tool.settings', tab: 'tools', group: 'settings', label: '设置…', icon: 'gear', primary: true, run: (c) => c.openDialog('settings') },
-      { id: 'tool.theme', tab: 'tools', group: 'settings', label: '切换主题', icon: 'refresh', hint: '深色/亮色', run: (c) => c.flipTheme() },
+      { id: 'tool.settings', tab: 'tools', group: 'settings', label: 'ribbon.commands.settings', icon: 'gear', primary: true, run: (c) => c.openDialog('settings') },
+      { id: 'tool.theme', tab: 'tools', group: 'settings', label: 'ribbon.commands.toggleTheme', icon: 'refresh', hint: 'ribbon.hints.themeHint', run: (c) => c.flipTheme() },
     ],
   },
 ];
@@ -338,7 +338,7 @@ const helpGroups: RibbonGroup[] = [
     id: 'help',
     label: '关于',
     commands: [
-      { id: 'help.about', tab: 'help', group: 'help', label: '关于…', icon: 'info', primary: true, run: (c) => c.openAboutDialog() },
+      { id: 'help.about', tab: 'help', group: 'help', label: 'ribbon.commands.about', icon: 'info', primary: true, run: (c) => c.openAboutDialog() },
     ],
   },
 ];

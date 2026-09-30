@@ -98,6 +98,13 @@ export function listGisScenes(): Promise<GisSceneSummary[]> {
   return request<GisSceneSummary[]>("/api/scenes");
 }
 
+/** GET /api/scenes/:id —— 服务端场景文档（打开场景用） */
+export function getGisScene(id: string): Promise<import("@geolibre/gis-shared").SceneDocument> {
+  return request<import("@geolibre/gis-shared").SceneDocument>(
+    `/api/scenes/${encodeURIComponent(id)}`,
+  );
+}
+
 export function hostGisDirectory(
   dir: string,
   kind: "xyz" | "3dtiles",

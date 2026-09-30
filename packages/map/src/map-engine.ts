@@ -141,6 +141,15 @@ export interface MapEngine {
    * {@link MapEngineCapabilities.picking}.
    */
   identifyFeatures(lngLat: [number, number], layerId?: string): IdentifiedFeature[];
+  /** 引擎的 DOM 容器（应用级指针监听挂载点，如拾取模式的单击捕获）。 */
+  getContainer(): HTMLElement;
+  /** 屏幕点 → 经纬度；Cesium 侧未命中地球时返回 null。 */
+  screenToLocation(point: [number, number]): [number, number] | null;
+  /**
+   * 切换场景形态（仅 Cesium 引擎实现：2D / 3D / 哥伦布视图 morph）。
+   * 可选能力：maplibre/ArcGIS 引擎不实现（平面渲染器无形态概念）。
+   */
+  morphTo?(mode: "2d" | "3d" | "columbus"): void;
   /** Highlight one or more features on `layer`; `null` clears the highlight. */
   highlightFeature(
     layer: GeoLibreLayer | undefined,
