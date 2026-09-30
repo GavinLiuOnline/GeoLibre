@@ -2269,7 +2269,7 @@ export function TopToolbar({
       openRegionCache: () => {
         setRegionBbox(null);
         setRegionDrawArmed(true);
-        ribbonPending("在地图上拖拽框选缓存范围（再次点击取消）");
+        showNotice("框选模式：在地图上拖拽矩形选择缓存区域（Esc 取消）", 8000);
       },
       openReprojectionDialog: () => setReprojectionOpen(true),
       openAboutDialog: () => setAboutOpen(true),
@@ -2393,7 +2393,7 @@ export function TopToolbar({
                 style: structuredClone(DEFAULT_LAYER_STYLE),
                 metadata: { importedFrom: "local-3dtiles-dir" },
               });
-              showNotice(`已加载本机 3D Tiles：${name}（在全球视图中渲染）`);
+              showNotice(`已加载本机 3D Tiles：${name}（${selected}，全球视图渲染）`);
             } catch (e) {
               showNotice(`加载本机 3D Tiles 失败：${e instanceof Error ? e.message : String(e)}`, 6000);
             }
@@ -2421,7 +2421,7 @@ export function TopToolbar({
               metadata: { importedFrom: "local-xyz-dir", minZoom: scan.minZoom, maxZoom: scan.maxZoom, ext: scan.ext },
             });
             showNotice(
-              `已加载本机 XYZ 缓存：z${scan.minZoom}–z${scan.maxZoom}（${scan.ext.toUpperCase()}，${scan.zoomDirCount} 个缩放级）`,
+              `已加载本机 XYZ 缓存：${selected}（z${scan.minZoom}–z${scan.maxZoom}，${scan.ext.toUpperCase()}，${scan.zoomDirCount} 个缩放级）`,
             );
           } catch (e) {
             showNotice(`加载本机 XYZ 缓存失败：${e instanceof Error ? e.message : String(e)}`, 6000);
