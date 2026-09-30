@@ -13,6 +13,8 @@ import { findCommand, type RibbonContext } from "../command/ribbon/commands";
 import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
 import { ServicesDialog } from "../panels/ServicesDialog";
 import { PublishDialog } from "../panels/PublishDialog";
+import { OptimizerDialog } from "../panels/OptimizerDialog";
+import { featuresIntersectingBbox } from "../../lib/geojson-lightweight";
 import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
   DEFAULT_BUILT_IN_CONTROL_VISIBILITY,
@@ -1378,6 +1380,9 @@ export function TopToolbar({
   const [reprojectionOpen, setReprojectionOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [optimizerOpen, setOptimizerOpen] = useState(false);
+  const [rectSelectArmed, setRectSelectArmed] = useState(false);
+  const pickHandlerRef = useRef<(() => void) | null>(null);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
   // 框选区域缓存：先在地图上拖拽矩形定范围（复用底图提取的 drawExtent 生命周期），
   // 完成后再打开生成对话框（bbox 随 prop 传入）。
@@ -2234,6 +2239,10 @@ export function TopToolbar({
           setPublishOpen(true);
           return;
         }
+        if (key === "optimizer") {
+          setOptimizerOpen(true);
+          return;
+        }
         ribbonPending(key);
       },
       openBasemapDialog: () => onOpenBasemapExtract(),
@@ -2271,7 +2280,56 @@ export function TopToolbar({
           return;
         }
         if (tool === "pan") return; // 地图默认即漫游
-        ribbonPending("顶点编辑 / 拾取 / 框选（后续 PR 接入）");
+        if (tool === "edit-vertex") {
+          onToggleVertexEdit?.();
+          return;
+        }
+        if (tool === "select-rect") {
+          // 矩形框选：复用 drawExtent 生命周期，完成后按坐标包围盒过滤
+          // 当前选中矢量图层的要素并写入多选（与属性表同一套键约定）
+          setRectSelectArmed(true);
+          showNotice("框选模式：在地图上拖拽矩形，松手选中范围内要素（Esc 取消）", 8000);
+          return;
+        }
+        if (tool === "pick") {
+          if (pickHandlerRef.current) {
+            pickHandlerRef.current();
+            pickHandlerRef.current = null;
+            showNotice("已退出拾取模式");
+            return;
+          }
+          const engine = mapControllerRef.current;
+          if (!engine) return;
+          const container = engine.getContainer();
+          const onPick = (event: Event) => {
+            const mouse = event as MouseEvent;
+            const rect = container.getBoundingClientRect();
+            const location = engine.screenToLocation([mouse.clientX - rect.left, mouse.clientY - rect.top]);
+            if (!location) {
+              showNotice("该位置不在地球上", 3000);
+              return;
+            }
+            const hits = engine.identifyFeatures(location);
+            const first = hits[0];
+            if (first) {
+              const store = useAppStore.getState();
+              if (first.featureId != null) {
+                store.selectLayer(first.layerId);
+                store.selectFeature(first.featureId);
+                showNotice(`已拾取要素（图层「${first.layerId}」，${Object.keys(first.properties).length} 个属性）`);
+              } else {
+                showNotice(`命中图层「${first.layerId}」的要素（无稳定 id，未写入选择）`, 5000);
+              }
+            } else {
+              showNotice("该位置未拾取到要素", 3000);
+            }
+          };
+          container.addEventListener("click", onPick, true);
+          pickHandlerRef.current = () => container.removeEventListener("click", onPick, true);
+          showNotice("拾取模式：点击地图上的要素（再次点击菜单项或 Esc 退出）", 8000);
+          return;
+        }
+        ribbonPending("该工具将在后续 PR 接入");
       },
       setView: (mode) => {
         if (mode === "3D") setPrimaryRenderer("cesium");
@@ -2431,6 +2489,70 @@ export function TopToolbar({
     regionPreviewDisposeRef.current?.();
     regionPreviewDisposeRef.current = null;
   }, [cacheDialog]);
+
+  // 矩形框选工具：拖拽结束后按包围盒过滤选中矢量图层的要素
+  const rectPreviewDisposeRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (!rectSelectArmed) return;
+    const engine = mapControllerRef.current;
+    if (!engine) {
+      setRectSelectArmed(false);
+      return;
+    }
+    const disposePreview = () => {
+      rectPreviewDisposeRef.current?.();
+      rectPreviewDisposeRef.current = null;
+    };
+    const lifecycle = engine.drawExtent({
+      onChange: (extent) => {
+        disposePreview();
+        rectPreviewDisposeRef.current = engine.showExtent(extent);
+      },
+      onDone: (extent) => {
+        setRectSelectArmed(false);
+        disposePreview();
+        const store = useAppStore.getState();
+        const layer = store.layers.find(
+          (candidate) => candidate.id === store.selectedLayerId && candidate.type === "geojson",
+        ) ?? store.layers.find((candidate) => candidate.type === "geojson" && candidate.geojson);
+        if (!layer?.geojson) {
+          showNotice("框选结束：没有可选择的矢量图层", 5000);
+          return;
+        }
+        const keys = featuresIntersectingBbox(layer.geojson, extent);
+        if (store.selectedLayerId !== layer.id) store.selectLayer(layer.id);
+        if (keys.length > 0) {
+          store.selectFeatures(keys, keys[keys.length - 1]);
+        }
+        showNotice(
+          keys.length > 0
+            ? `框选命中 ${keys.length} 个要素（图层「${layer.name}」），可在属性表/样式面板查看`
+            : `框选范围内没有「${layer.name}」的要素`,
+          6000,
+        );
+      },
+      onCancel: () => {
+        setRectSelectArmed(false);
+        disposePreview();
+      },
+    });
+    return () => {
+      lifecycle?.();
+      disposePreview();
+    };
+  }, [rectSelectArmed, mapControllerRef, mapReadyGeneration, showNotice]);
+
+  // Esc 退出拾取/框选模式
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      pickHandlerRef.current?.();
+      pickHandlerRef.current = null;
+      setRectSelectArmed(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   return (
     <>
       {ribbonNotice || regionHint ? (
@@ -2553,6 +2675,7 @@ export function TopToolbar({
       <ReprojectionDialog open={reprojectionOpen} onOpenChange={setReprojectionOpen} />
       <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} />
       <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
+      <OptimizerDialog open={optimizerOpen} onOpenChange={setOptimizerOpen} />
       {cacheDialog ? (
         <GenerateCacheDialog
           open

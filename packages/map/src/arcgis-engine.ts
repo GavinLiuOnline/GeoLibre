@@ -1398,6 +1398,14 @@ export class ArcgisEngine implements MapEngine {
    * points and lines. Service layers, whose features live on the server, are
    * only reachable through the asynchronous path.
    */
+  getContainer(): HTMLElement {
+    return (this as unknown as { map?: { container?: HTMLElement } }).map?.container
+      ?? document.createElement("div");
+  }
+  screenToLocation(point: [number, number]): [number, number] | null {
+    // ArcGIS 渲染器当前不承载 GeoLibre 矢量拾取；返回 null 让调用方提示
+    return null;
+  }
   identifyFeatures(lngLat: [number, number], layerId?: string): IdentifiedFeature[] {
     const hit = this.lastHit;
     if (

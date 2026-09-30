@@ -1878,6 +1878,16 @@ export class MapController implements MapEngine {
    *   query every layer at the point.
    * @returns One entry per matched feature, topmost first.
    */
+  getContainer(): HTMLElement {
+    return this.map?.getContainer() ?? document.createElement("div");
+  }
+  screenToLocation(point: [number, number]): [number, number] | null {
+    const map = this.map;
+    if (!map) return null;
+    const { lng, lat } = map.unproject(point);
+    return [lng, lat];
+  }
+
   identifyFeatures(
     lngLat: [number, number],
     layerId?: string,

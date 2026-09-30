@@ -890,6 +890,15 @@ export class MapboxEngine implements MapEngine {
       .map((spec) => spec.id)
       .filter((id) => Boolean(map?.getLayer(id)));
   }
+  getContainer(): HTMLElement {
+    return this.map?.getContainer() ?? document.createElement("div");
+  }
+  screenToLocation(point: [number, number]): [number, number] | null {
+    const map = this.map;
+    if (!map) return null;
+    const { lng, lat } = map.unproject(point);
+    return [lng, lat];
+  }
   identifyFeatures(lngLat: [number, number], layerId?: string): IdentifiedFeature[] {
     const map = this.map;
     if (!map?.isStyleLoaded()) return [];

@@ -846,6 +846,14 @@ export class CesiumEngine implements MapEngine {
     return this.drawingDispose;
   }
 
+  getContainer(): HTMLElement {
+    return (this.live()?.container as HTMLElement | undefined) ?? document.createElement("div");
+  }
+  screenToLocation(point: [number, number]): [number, number] | null {
+    const viewer = this.live();
+    if (!viewer) return null;
+    return pickDrawingLocation(this.Cesium, viewer, { x: point[0], y: point[1] });
+  }
   drawExtent(options: ExtentDrawingOptions): () => void {
     this.drawingDispose?.();
     const viewer = this.live();

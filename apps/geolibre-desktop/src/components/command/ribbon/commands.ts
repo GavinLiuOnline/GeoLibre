@@ -228,7 +228,7 @@ const dataGroups: RibbonGroup[] = [
     label: '配准 / 轻量化',
     commands: [
       { id: 'data.reprojection', tab: 'data', group: 'transform', label: '坐标重投影…', icon: 'compress', hint: 'proj4 矢量重投影，纯客户端', run: (c) => c.openReprojectionDialog() },
-      { id: 'data.optimizer', tab: 'data', group: 'transform', label: '数据轻量化…', icon: 'compress', run: (c) => c.openDialog('optimizer') , pending: true },
+      { id: 'data.optimizer', tab: 'data', group: 'transform', label: '数据轻量化…', icon: 'compress', primary: true, hint: 'DP 简化 + 坐标精度截断，生成新图层', run: (c) => c.openDialog('optimizer') },
     ],
   },
 ];
@@ -310,7 +310,7 @@ const toolsGroups: RibbonGroup[] = [
       { id: 'tool.draw-point', tab: 'tools', group: 'draw', label: '绘制点', icon: 'point', primary: true, run: (c) => c.setTool('draw-point') },
       { id: 'tool.draw-line', tab: 'tools', group: 'draw', label: '绘制折线', icon: 'polyline', primary: true, run: (c) => c.setTool('draw-line') },
       { id: 'tool.draw-polygon', tab: 'tools', group: 'draw', label: '绘制多边形', icon: 'polygon', primary: true, run: (c) => c.setTool('draw-polygon') },
-      { id: 'tool.rect-select', tab: 'tools', group: 'draw', label: '矩形框选', icon: 'rect', hint: '用于生成 XYZ 缓存', run: (c) => c.setTool('select-rect') , pending: true },
+      { id: 'tool.rect-select', tab: 'tools', group: 'draw', label: '矩形框选', icon: 'rect', hint: '拖拽矩形选中范围内要素', run: (c) => c.setTool('select-rect') },
     ],
   },
   {
@@ -318,7 +318,7 @@ const toolsGroups: RibbonGroup[] = [
     label: '编辑',
     commands: [
       { id: 'tool.vertex-edit', tab: 'tools', group: 'edit', label: '顶点编辑', icon: 'pin', primary: true, hint: '对选中图层开启/结束几何编辑', run: (c) => c.toggleVertexEdit() },
-      { id: 'tool.pick', tab: 'tools', group: 'edit', label: '拾取要素', icon: 'cursor', primary: true, run: (c) => c.setTool('pick') , pending: true },
+      { id: 'tool.pick', tab: 'tools', group: 'edit', label: '拾取要素', icon: 'cursor', primary: true, hint: '点击地图要素写入选择', run: (c) => c.setTool('pick') },
       { id: 'tool.pan', tab: 'tools', group: 'edit', label: '漫游', icon: 'hand', shortcut: 'Esc', primary: true, run: (c) => c.setTool('pan') },
     ],
   },
