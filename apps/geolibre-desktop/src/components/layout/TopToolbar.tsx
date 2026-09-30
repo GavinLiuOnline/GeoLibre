@@ -14,6 +14,7 @@ import { GenerateCacheDialog } from "../panels/GenerateCacheDialog";
 import { ServicesDialog } from "../panels/ServicesDialog";
 import { PublishDialog } from "../panels/PublishDialog";
 import { OptimizerDialog } from "../panels/OptimizerDialog";
+import { ScenesDialog } from "../panels/ScenesDialog";
 import { featuresIntersectingBbox } from "../../lib/geojson-lightweight";
 import { ReprojectionDialog } from "../panels/ReprojectionDialog";
 import {
@@ -1381,6 +1382,7 @@ export function TopToolbar({
   const [servicesOpen, setServicesOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [optimizerOpen, setOptimizerOpen] = useState(false);
+  const [scenesOpen, setScenesOpen] = useState(false);
   const [rectSelectArmed, setRectSelectArmed] = useState(false);
   const pickHandlerRef = useRef<(() => void) | null>(null);
   const [cacheDialog, setCacheDialog] = useState<"2d" | "region" | null>(null);
@@ -2249,7 +2251,9 @@ export function TopToolbar({
       openHostDirectoryDialog: () => setServicesOpen(true),
       openServiceListDialog: () => setServicesOpen(true),
       openUrlImportDialog: () => setAddDataKind("xyz"),
-      openSceneListDialog: () => ribbonPending("从服务端打开（Phase 3）"),
+      openSceneListDialog: () => {
+        setScenesOpen(true);
+      },
       openProjectPackage: (tab) => {
         if (tab === "import") void projectFiles.handleOpenFromFile();
         else void projectFiles.handleSaveAs();
@@ -2676,6 +2680,7 @@ export function TopToolbar({
       <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} />
       <PublishDialog open={publishOpen} onOpenChange={setPublishOpen} />
       <OptimizerDialog open={optimizerOpen} onOpenChange={setOptimizerOpen} />
+      <ScenesDialog open={scenesOpen} onOpenChange={setScenesOpen} />
       {cacheDialog ? (
         <GenerateCacheDialog
           open

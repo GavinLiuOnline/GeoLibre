@@ -8092,7 +8092,7 @@
     "registryEmpty": "No registered services yet; host a directory or publish data first",
     "registryPending": "Connect to view",
     "scenesLabel": "Server scenes",
-    "scenesEmpty": "No scenes on the server yet; they appear here after publishing",
+    "scenesEmpty": "No scenes hosted yet. Publish a scene first (一键发布 / Publish dialog).",
     "scenesPending": "Connect to view",
     "publishTitle": "One-Click Publish",
     "publishDescription": "Publish the current project to the GIS server: GeoJSON layers are embedded, tile/WMS layers are referenced by URL; the server returns a shareable scene URL.",
@@ -8111,6 +8111,12 @@
     "kindXyz": "XYZ tiles",
     "kind3dtiles": "3D Tiles",
     "skipNoUrl": "No data URL found",
-    "skipUnsupported": "Publishing not supported for this type yet"
+    "skipUnsupported": "Publishing not supported for this type yet",
+    "scenesTitle": "Open Scene from Server",
+    "scenesDescription": "List scenes hosted by the GIS server and open one into the editor (replaces the current layer set).",
+    "scenesOpen": "Open",
+    "scenesOpened": "Opened “{{name}}”: {{count}} layer(s) loaded.",
+    "scenesSkipped": "Skipped “{{name}}”: {{reason}}",
+    "refresh": "Refresh"
   }
 }

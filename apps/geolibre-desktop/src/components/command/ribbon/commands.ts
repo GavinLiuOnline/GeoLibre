@@ -171,7 +171,7 @@ const fileGroups: RibbonGroup[] = [
     commands: [
       { id: 'scene.new', tab: 'file', group: 'scene', label: '新建', icon: 'file', shortcut: 'Ctrl+N', primary: true, run: (c) => c.newScene() },
       { id: 'package.import', tab: 'file', group: 'scene', label: '打开…', icon: 'package', primary: true, hint: '打开工程包（场景 + 缓存 + 资产）', run: (c) => c.openProjectPackage('import') },
-      { id: 'scene.open-server', tab: 'file', group: 'scene', label: '从服务端打开…', icon: 'cloud', run: (c) => c.openSceneListDialog() , pending: true },
+      { id: 'scene.open-server', tab: 'file', group: 'scene', label: '从服务端打开…', icon: 'cloud', hint: '一键发布的反向：拉取托管场景到编辑器', run: (c) => c.openSceneListDialog() },
     ],
   },
   {

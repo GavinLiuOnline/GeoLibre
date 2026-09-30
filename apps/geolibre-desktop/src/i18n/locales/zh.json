@@ -7997,7 +7997,7 @@
     "registryEmpty": "暂无已注册服务；先在上方托管目录或发布数据",
     "registryPending": "连接后显示",
     "scenesLabel": "服务端场景",
-    "scenesEmpty": "服务端暂无场景；发布后在此查看",
+    "scenesEmpty": "服务端还没有场景。请先用「一键发布」发布一个场景。",
     "scenesPending": "连接后显示",
     "publishTitle": "一键发布",
     "publishDescription": "将当前工程发布到 GIS 服务端：geojson 图层内嵌，瓦片/WMS 图层按 URL 引用；服务端返回可分享的场景地址。",
@@ -8016,6 +8016,12 @@
     "kindXyz": "XYZ 瓦片",
     "kind3dtiles": "3D Tiles",
     "skipNoUrl": "未找到数据 URL",
-    "skipUnsupported": "该类型暂不支持发布"
+    "skipUnsupported": "该类型暂不支持发布",
+    "scenesTitle": "从服务端打开场景",
+    "scenesDescription": "列出 GIS 服务端已托管的场景并打开到编辑器（替换当前图层集）。",
+    "scenesOpen": "打开",
+    "scenesOpened": "已打开「{{name}}」：加载 {{count}} 个图层。",
+    "scenesSkipped": "跳过「{{name}}」：{{reason}}",
+    "refresh": "刷新"
   }
 }
